@@ -13,14 +13,14 @@ export default function PrivacyPolicyPage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
             Privacy Policy
           </h1>
-          
+
           <div className="space-y-8 text-gray-600 dark:text-gray-300 leading-relaxed">
             <section>
               <p>
                 Welcome to Turfcut. This Privacy Policy explains how your personal information is collected, used, and protected when you use our application and services. By accessing or using Turfcut, you agree to the collection and use of information in accordance with this policy.
               </p>
             </section>
-            
+
             <section>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                 1. What Information You Collect
@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
                 When you create an account with us, we collect Personal Information such as your <strong>Name, Email Address, Phone Number, and Passwords</strong>. This information is necessary to provide you with our services.
               </p>
             </section>
-            
+
             <section>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                 2. How You Use That Information
@@ -89,7 +89,7 @@ export default function PrivacyPolicyPage() {
                 If you have any questions, concerns, or require further clarification about our privacy practices, please contact us at:
                 <br />
                 <a href="mailto:support@turfcut.com" className="text-blue-600 dark:text-blue-400 hover:underline">
-                  support@turfcut.com
+                  info@flutterflirt.com
                 </a>
               </p>
             </section>
