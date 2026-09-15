@@ -8,12 +8,12 @@ export interface User {
   created_at: string
 }
 
-const API_URL = 'https://turf-booking-1-mns7.onrender.com'
+const API_URL = 'https://api.eatmeat.live'
 
 export const usersService = {
   getUsers: async (): Promise<User[]> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
-    
+
     if (!token) throw new Error("No authorization token found")
 
     const response = await axios.get(`${API_URL}/admin/customers`, {
@@ -28,7 +28,7 @@ export const usersService = {
       throw new Error(response.data?.message || "Failed to fetch customers")
     }
   },
-  
+
   deleteUser: async (id: string): Promise<void> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
@@ -44,9 +44,9 @@ export const usersService = {
       if (response.data && response.data.success === false) {
         throw new Error(response.data.message || "Failed to delete customer")
       }
-      
+
       // Otherwise, any 2xx response (including 204 No Content with empty data) is considered successful
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       // If it's a 404, the endpoint might be singular, but we assume REST plural standard here
       throw new Error(error.response?.data?.message || error.message || "Failed to delete customer")

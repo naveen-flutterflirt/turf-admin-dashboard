@@ -17,10 +17,10 @@ export const notificationsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.get('https://turf-booking-1-mns7.onrender.com/notifications', {
+    const response = await axios.get('https://api.eatmeat.live/notifications', {
       headers: { Authorization: `Bearer ${token}` }
     })
-    
+
     if (response.data && response.data.success !== false) {
       return response.data.data || response.data || []
     }
@@ -31,7 +31,7 @@ export const notificationsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.patch(`https://turf-booking-1-mns7.onrender.com/notifications/${id}/read`, {}, {
+    const response = await axios.patch(`https://api.eatmeat.live/notifications/${id}/read`, {}, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (response.data && response.data.success === false) {
@@ -43,7 +43,7 @@ export const notificationsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.patch('https://turf-booking-1-mns7.onrender.com/notifications/read-all', {}, {
+    const response = await axios.patch('https://api.eatmeat.live/notifications/read-all', {}, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (response.data && response.data.success === false) {
@@ -55,7 +55,7 @@ export const notificationsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.delete(`https://turf-booking-1-mns7.onrender.com/notifications/${id}`, {
+    const response = await axios.delete(`https://api.eatmeat.live/notifications/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (response.data && response.data.success === false) {
@@ -67,7 +67,7 @@ export const notificationsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.delete('https://turf-booking-1-mns7.onrender.com/notifications/clear-all', {
+    const response = await axios.delete('https://api.eatmeat.live/notifications/clear-all', {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (response.data && response.data.success === false) {

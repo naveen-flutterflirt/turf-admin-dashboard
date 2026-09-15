@@ -14,10 +14,10 @@ export interface Owner {
 export const ownersService = {
   getOwners: async (): Promise<Owner[]> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
-    
+
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.get('https://turf-booking-1-mns7.onrender.com/admin/owners', {
+    const response = await axios.get('https://api.eatmeat.live/admin/owners', {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -28,12 +28,12 @@ export const ownersService = {
       throw new Error(response.data.message || "Failed to fetch owners")
     }
   },
-  
+
   deleteOwner: async (owner_id: string): Promise<void> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.delete(`https://turf-booking-1-mns7.onrender.com/admin/owners/${owner_id}`, {
+    const response = await axios.delete(`https://api.eatmeat.live/admin/owners/${owner_id}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }

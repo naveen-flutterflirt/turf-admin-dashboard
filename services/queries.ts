@@ -11,12 +11,12 @@ export interface QueryType {
   updated_at: string
 }
 
-const API_URL = 'https://turf-booking-1-mns7.onrender.com'
+const API_URL = 'https://api.eatmeat.live'
 
 export const queriesService = {
   getQueries: async (): Promise<QueryType[]> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
-    
+
     if (!token) throw new Error("No authorization token found")
 
     const response = await axios.get(`${API_URL}/admin/queries`, {
@@ -28,12 +28,12 @@ export const queriesService = {
     if (response.data && response.data.success) {
       return response.data.data
     } else if (Array.isArray(response.data)) {
-        return response.data // just in case it returns an array directly
+      return response.data // just in case it returns an array directly
     } else {
       throw new Error(response.data?.message || "Failed to fetch queries")
     }
   },
-  
+
   replyQuery: async (id: string, admin_reply: string, status: string): Promise<QueryType> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")

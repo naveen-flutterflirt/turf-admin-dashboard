@@ -16,7 +16,7 @@ export const sportsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.get('https://turf-booking-1-mns7.onrender.com/admin/sports-stats', {
+    const response = await axios.get('https://api.eatmeat.live/admin/sports-stats', {
       headers: {
         Authorization: `Bearer ${token}`
       }

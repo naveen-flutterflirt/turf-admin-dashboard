@@ -18,7 +18,7 @@ export interface Booking {
   customer_phone: string
 }
 
-const API_URL = 'https://turf-booking-1-mns7.onrender.com'
+const API_URL = 'https://api.eatmeat.live'
 
 export const bookingsService = {
   getBookings: async (): Promise<Booking[]> => {

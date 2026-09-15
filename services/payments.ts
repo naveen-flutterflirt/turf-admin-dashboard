@@ -26,7 +26,7 @@ export interface PaymentsResponse {
   data: Payment[]
 }
 
-const API_URL = 'https://turf-booking-1-mns7.onrender.com'
+const API_URL = 'https://api.eatmeat.live'
 
 export const paymentsService = {
   getPayments: async (): Promise<PaymentsResponse> => {
@@ -52,7 +52,7 @@ export const paymentsService = {
       throw error
     }
   },
-  
+
   processRefund: async (id: string): Promise<Payment> => {
     throw new Error("Refund functionality not supported by API yet")
   }

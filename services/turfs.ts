@@ -35,7 +35,7 @@ export const turfsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.get('https://turf-booking-1-mns7.onrender.com/admin/turfs', {
+    const response = await axios.get('https://api.eatmeat.live/admin/turfs', {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -52,7 +52,7 @@ export const turfsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.patch(`https://turf-booking-1-mns7.onrender.com/admin/turfs/${id}/approve`, {}, {
+    const response = await axios.patch(`https://api.eatmeat.live/admin/turfs/${id}/approve`, {}, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -67,7 +67,7 @@ export const turfsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.patch(`https://turf-booking-1-mns7.onrender.com/admin/turfs/${id}/reject`, {}, {
+    const response = await axios.patch(`https://api.eatmeat.live/admin/turfs/${id}/reject`, {}, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -89,7 +89,7 @@ export const turfsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.delete(`https://turf-booking-1-mns7.onrender.com/admin/turfs/${id}`, {
+    const response = await axios.delete(`https://api.eatmeat.live/admin/turfs/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
