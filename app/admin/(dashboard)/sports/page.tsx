@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 
 export default function SportsPage() {
   const { data: sports, isLoading, isError } = useQuery({ queryKey: ['sports-stats'], queryFn: sportsService.getSports })
-  
+
   // State for viewing all turfs of a sport in a modal
   const [selectedSport, setSelectedSport] = useState<SportStat | null>(null)
 
@@ -72,7 +72,7 @@ export default function SportsPage() {
                                     </span>
                                   ))}
                                   {sport.turfs.length > 3 && (
-                                    <button 
+                                    <button
                                       onClick={() => setSelectedSport(sport)}
                                       className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-brand-mint text-brand-dark-green hover:bg-brand-caribbean text-xs font-bold rounded-md shadow-sm cursor-pointer transition-colors"
                                     >
@@ -96,7 +96,7 @@ export default function SportsPage() {
               <div className="md:hidden flex flex-col gap-4 p-4">
                 <AnimatePresence mode="popLayout">
                   {sports.map((sport, idx) => (
-                    <motion.div 
+                    <motion.div
                       key={idx}
                       layout
                       initial={{ opacity: 0, y: 10 }}
@@ -110,7 +110,7 @@ export default function SportsPage() {
                           {sport.turf_count} Turfs
                         </span>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Associated Turfs</p>
                         <div className="flex gap-2 flex-wrap items-center">
@@ -123,7 +123,7 @@ export default function SportsPage() {
                                 </span>
                               ))}
                               {sport.turfs.length > 3 && (
-                                <button 
+                                <button
                                   onClick={() => setSelectedSport(sport)}
                                   className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-brand-mint text-brand-dark-green hover:bg-brand-caribbean text-xs font-bold rounded-md shadow-sm cursor-pointer transition-colors"
                                 >
@@ -146,9 +146,9 @@ export default function SportsPage() {
       </Card>
 
       {/* Modal for viewing all turfs */}
-      <Modal 
-        isOpen={!!selectedSport} 
-        onClose={() => setSelectedSport(null)} 
+      <Modal
+        isOpen={!!selectedSport}
+        onClose={() => setSelectedSport(null)}
         title={`${selectedSport?.sport_name} Turfs`}
       >
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
