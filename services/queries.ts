@@ -53,6 +53,7 @@ export const queriesService = {
       } else {
         throw new Error(response.data.message || "Failed to reply to query")
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || "Failed to reply to query")
     }

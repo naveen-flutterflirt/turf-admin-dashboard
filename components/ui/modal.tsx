@@ -10,9 +10,10 @@ interface ModalProps {
   title: string
   children: React.ReactNode
   description?: string
+  maxWidth?: string
 }
 
-export function Modal({ isOpen, onClose, title, children, description }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, description, maxWidth = 'max-w-lg' }: ModalProps) {
   // Prevent scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -40,9 +41,9 @@ export function Modal({ isOpen, onClose, title, children, description }: ModalPr
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative bg-card w-full max-w-lg rounded-xl shadow-2xl border border-border overflow-hidden"
+            className={`relative bg-card w-full ${maxWidth} rounded-xl shadow-2xl border border-border overflow-hidden max-h-[90vh] flex flex-col`}
           >
-            <div className="flex items-center justify-between p-6 border-b border-border bg-muted/10">
+            <div className="flex items-center justify-between p-6 border-b border-border bg-muted/10 shrink-0">
               <div>
                 <h2 className="text-xl font-bold">{title}</h2>
                 {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
@@ -51,7 +52,7 @@ export function Modal({ isOpen, onClose, title, children, description }: ModalPr
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <div className="p-6">
+            <div className="p-6 overflow-y-auto">
               {children}
             </div>
           </motion.div>
