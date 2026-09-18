@@ -4,51 +4,48 @@
   /* Light Mode - Base colors leveraging Anti-Flash White & Rich Black/Dark Green */
   --background: #F1F7F6;
   --foreground: #021B1A;
-  
+
   --primary: #2CC295;
   --primary-foreground: #ffffff;
-  
+
   --secondary: #AACBC4;
   --secondary-foreground: #032221;
-  
+
   --accent: #00DF81;
   --accent-foreground: #021B1A;
-  
+
   --muted: #E2EBE9;
   --muted-foreground: #707D7D;
-  
   --card: #ffffff;
   --card-foreground: #032221;
-  
   --border: #AACBC4;
   --input: #E2EBE9;
   --ring: #2CC295;
-  
   --radius: 0.75rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     /* Sophisticated Dark Mode - Lighter than pitch black, softer contrast */
-    --background: #041211; 
-    --foreground: #F1F7F6; 
-    
+    --background: #041211;
+    --foreground: #F1F7F6;
+
     --primary: #2CC295;
     --primary-foreground: #021B1A;
-    
-    --secondary: #0A2624; 
+
+    --secondary: #0A2624;
     --secondary-foreground: #AACBC4;
-    
-    --accent: #00DF81; 
+
+    --accent: #00DF81;
     --accent-foreground: #021B1A;
-    
+
     --muted: #0A2624;
     --muted-foreground: #707D7D;
-    
-    --card: #081B1A; 
+
+    --card: #081B1A;
     --card-foreground: #F1F7F6;
-    
-    --border: #113835; 
+
+    --border: #113835;
     --input: #0A2624;
   }
 }
@@ -70,7 +67,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --radius: var(--radius);
-  
+
   --color-brand-rich-black: #021B1A;
   --color-brand-dark-green: #032221;
   --color-brand-bangladesh: #03624C;
@@ -90,42 +87,48 @@
 
 @layer base {
   html {
-    font-size: 14px; /* Base for mobile screens */
+    font-size: 14px;
+    /* Base for mobile screens */
   }
-  
+
   @media (min-width: 768px) {
     html {
-      font-size: 15px; /* Tablets */
+      font-size: 15px;
+      /* Tablets */
     }
   }
 
   @media (min-width: 1024px) {
     html {
-      font-size: 16px; /* Desktops */
+      font-size: 16px;
+      /* Desktops */
     }
   }
 
   * {
     @apply border-border;
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
-  
+
   *::-webkit-scrollbar {
-    display: none; /* Chrome/Safari/Edge */
+    display: none;
+    /* Chrome/Safari/Edge */
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased selection:bg-primary selection:text-primary-foreground transition-colors duration-300;
   }
 
-  button, 
-  [role="button"], 
+  button,
+  [role="button"],
   a {
     cursor: pointer;
   }
-  
-  button:disabled, 
+
+  button:disabled,
   [role="button"]:disabled,
   [aria-disabled="true"],
   .disabled {
@@ -136,17 +139,21 @@
 @layer utilities {
   .custom-scrollbar {
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
+    /* Firefox */
   }
+
   .custom-scrollbar::-webkit-scrollbar {
-    display: none; /* Chrome/Safari/Edge */
+    display: none;
+    /* Chrome/Safari/Edge */
   }
-  
+
   /* Fallback utility */
   .hide-scrollbar {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
+
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }

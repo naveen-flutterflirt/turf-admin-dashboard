@@ -19,20 +19,15 @@ import { exportToCsv } from '@/lib/export'
 export default function UsersPage() {
   const queryClient = useQueryClient()
   const { data: users, isLoading, isError } = useQuery({ queryKey: ['users'], queryFn: usersService.getUsers })
-  
+
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  
+
   // Search, Filter, Pagination state
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const ITEMS_PER_PAGE = 8
-  
-
-
-
-
   const deleteMutation = useMutation({
     mutationFn: usersService.deleteUser,
     onSuccess: () => {
@@ -60,7 +55,7 @@ export default function UsersPage() {
   }, [users, searchTerm])
 
   const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE)
-  
+
   // Ensure currentPage is valid for the current filtered list
   const validCurrentPage = Math.min(currentPage, Math.max(1, totalPages))
   const paginatedUsers = filteredUsers.slice((validCurrentPage - 1) * ITEMS_PER_PAGE, validCurrentPage * ITEMS_PER_PAGE)
@@ -73,7 +68,7 @@ export default function UsersPage() {
       phone: u.phone,
       joined: new Date(u.created_at).toLocaleDateString()
     }));
-    
+
     exportToCsv(exportData, 'customers_export', [
       { key: 'id', label: 'Customer ID' },
       { key: 'name', label: 'Name' },
@@ -96,8 +91,8 @@ export default function UsersPage() {
         <CardHeader className="flex flex-row items-center justify-between gap-3 p-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search customers..." 
+            <Input
+              placeholder="Search customers..."
               className="pl-9 bg-secondary/20 w-full"
               value={searchTerm}
               onChange={(e) => {
@@ -117,9 +112,9 @@ export default function UsersPage() {
             ) : isError ? (
               <div className="py-10 text-center text-red-500">Failed to load customers.</div>
             ) : filteredUsers.length === 0 ? (
-              <EmptyState 
-                icon={Search} 
-                title="No customers found" 
+              <EmptyState
+                icon={Search}
+                title="No customers found"
                 description="We couldn't find any customers matching your current search filters. Try adjusting your search term."
                 action={<Button variant="outline" onClick={() => setSearchTerm('')}>Clear Search</Button>}
               />
@@ -146,9 +141,9 @@ export default function UsersPage() {
                             {new Date(user.created_at).toLocaleDateString()}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="h-8 w-8 text-red-500 hover:bg-red-500/10 hover:text-red-600"
                               onClick={() => {
                                 setSelectedUser(user)
@@ -166,11 +161,11 @@ export default function UsersPage() {
               </div>
             )}
           </div>
-          
+
           {/* Pagination Controls */}
           {!isLoading && !isError && filteredUsers.length > 0 && (
             <div className="mt-auto">
-              <Pagination 
+              <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
@@ -186,8 +181,8 @@ export default function UsersPage() {
           <p className="text-sm text-muted-foreground">Are you sure you want to delete <strong>{selectedUser?.name}</strong>? This action cannot be undone.</p>
           <div className="pt-2 flex justify-end gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
-            <Button 
-              type="button" 
+            <Button
+              type="button"
               size="sm"
               className="bg-red-500 hover:bg-red-600 text-white"
               disabled={deleteMutation.isPending}

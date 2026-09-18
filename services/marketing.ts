@@ -14,7 +14,7 @@ export interface BroadcastNotification {
 
 export interface SendBroadcastPayload {
   turf_id: string
-  radius_km: number
+  radius_km?: number
   title: string
   body: string
   customer_ids?: string[]

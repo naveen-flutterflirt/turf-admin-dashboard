@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 export default function BroadcastsPage() {
   const queryClient = useQueryClient()
   const [turfId, setTurfId] = useState('')
-  const [radiusKm, setRadiusKm] = useState('5')
+  const [radiusKm, setRadiusKm] = useState('')
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([])
@@ -40,7 +40,7 @@ export default function BroadcastsPage() {
     onSuccess: () => {
       toast.success('Broadcast sent successfully!')
       setTurfId('')
-      setRadiusKm('5')
+      setRadiusKm('')
       setTitle('')
       setBody('')
       setSelectedCustomerIds([])
@@ -66,14 +66,19 @@ export default function BroadcastsPage() {
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!turfId || !title || !body || !radiusKm) {
-      toast.error('Please fill in all fields')
+    if (!turfId || !title || !body) {
+      toast.error('Please fill in turf, title and message')
+      return
+    }
+
+    if (!radiusKm && selectedCustomerIds.length === 0) {
+      toast.error('Please provide at least a radius or select specific customers')
       return
     }
 
     sendBroadcastMutation.mutate({
       turf_id: turfId,
-      radius_km: Number(radiusKm),
+      radius_km: radiusKm ? Number(radiusKm) : undefined,
       title,
       body,
       customer_ids: selectedCustomerIds.length > 0 ? selectedCustomerIds : undefined
@@ -175,7 +180,8 @@ export default function BroadcastsPage() {
                   )}
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Radius (km)</label>
+                    <label className="text-sm font-medium text-foreground">Radius in km (Optional)</label>
+                    <p className="text-xs text-muted-foreground">Leave blank if you only want to message specific customers, regardless of distance.</p>
                     <Input
                       type="number"
                       min="1"

@@ -27,7 +27,7 @@ export default function TurfsPage() {
   // Modal States
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedTurf, setSelectedTurf] = useState<Turf | null>(null)
-  
+
   const [viewTurfDetails, setViewTurfDetails] = useState<Turf | null>(null)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
 
@@ -41,7 +41,7 @@ export default function TurfsPage() {
   })
 
   const toggleStatusMutation = useMutation({
-    mutationFn: (data: { id: string, action: 'approve' | 'reject' }) => 
+    mutationFn: (data: { id: string, action: 'approve' | 'reject' }) =>
       data.action === 'approve' ? turfsService.approveTurf(data.id) : turfsService.rejectTurf(data.id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['turfs'] })
   })
@@ -51,20 +51,20 @@ export default function TurfsPage() {
     if (!turfs) return []
     return turfs.filter(turf => {
       const search = (searchTerm || '').toLowerCase()
-      const matchesSearch = (turf.name?.toLowerCase() || '').includes(search) || 
-                            (turf.business_name?.toLowerCase() || '').includes(search) ||
-                            (turf.city?.toLowerCase() || '').includes(search)
-      
+      const matchesSearch = (turf.name?.toLowerCase() || '').includes(search) ||
+        (turf.business_name?.toLowerCase() || '').includes(search) ||
+        (turf.city?.toLowerCase() || '').includes(search)
+
       const status = (turf.status || '').toUpperCase()
       const isPendingMatch = status === 'PENDING'
       const isApprovedMatch = status === 'APPROVED' || status === 'ACTIVE'
       const isRejectedMatch = status === 'REJECTED' || status === 'INACTIVE'
-      
-      const matchesStatus = 
-        viewMode === 'PENDING' ? isPendingMatch : 
-        viewMode === 'APPROVED' ? isApprovedMatch : 
-        isRejectedMatch
-      
+
+      const matchesStatus =
+        viewMode === 'PENDING' ? isPendingMatch :
+          viewMode === 'APPROVED' ? isApprovedMatch :
+            isRejectedMatch
+
       return matchesSearch && matchesStatus
     })
   }, [turfs, searchTerm, viewMode])
@@ -82,7 +82,7 @@ export default function TurfsPage() {
 
   // Fallback image since backend doesn't provide one yet
   const FALLBACK_IMAGE = '/image.png'
-  
+
   const getTurfImages = (t: Turf | null): string[] => {
     if (!t) return [FALLBACK_IMAGE]
     if (t.images && t.images.length > 0) {
@@ -98,7 +98,7 @@ export default function TurfsPage() {
     let h = parseInt(hours, 10);
     const ampm = h >= 12 ? 'PM' : 'AM';
     h = h % 12;
-    h = h ? h : 12; 
+    h = h ? h : 12;
     return `${h.toString().padStart(2, '0')}:${minutes} ${ampm}`;
   }
 
@@ -109,16 +109,15 @@ export default function TurfsPage() {
           <h2 className="text-3xl font-bold tracking-tight text-brand-dark-green dark:text-white">Turfs Directory</h2>
           <p className="text-muted-foreground mt-1">Manage and approve turfs on the platform.</p>
         </div>
-        
+
         {/* Mode Switcher */}
         <div className="flex p-1 bg-muted rounded-xl w-full xl:w-auto shadow-inner border border-border overflow-x-auto">
           <button
             onClick={() => { setViewMode('PENDING'); setCurrentPage(1); }}
-            className={`flex-1 xl:flex-none flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${
-              viewMode === 'PENDING' 
-                ? 'bg-yellow-500 text-white shadow-md' 
+            className={`flex-1 xl:flex-none flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${viewMode === 'PENDING'
+                ? 'bg-yellow-500 text-white shadow-md'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             <Clock className="w-4 h-4" /> Pending
             {turfs && (
@@ -129,21 +128,19 @@ export default function TurfsPage() {
           </button>
           <button
             onClick={() => { setViewMode('APPROVED'); setCurrentPage(1); }}
-            className={`flex-1 xl:flex-none flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${
-              viewMode === 'APPROVED' 
-                ? 'bg-brand-mint text-brand-dark-green shadow-md' 
+            className={`flex-1 xl:flex-none flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${viewMode === 'APPROVED'
+                ? 'bg-brand-mint text-brand-dark-green shadow-md'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             <CheckCircle className="w-4 h-4" /> Approved
           </button>
           <button
             onClick={() => { setViewMode('REJECTED'); setCurrentPage(1); }}
-            className={`flex-1 xl:flex-none flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${
-              viewMode === 'REJECTED' 
-                ? 'bg-red-500 text-white shadow-md' 
+            className={`flex-1 xl:flex-none flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${viewMode === 'REJECTED'
+                ? 'bg-red-500 text-white shadow-md'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             <Ban className="w-4 h-4" /> Rejected
           </button>
@@ -154,8 +151,8 @@ export default function TurfsPage() {
         <CardHeader className="flex flex-row items-center justify-between gap-3 bg-muted/30 border-b border-border p-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search by name, business or city..." 
+            <Input
+              placeholder="Search by name, business or city..."
               className="pl-9 bg-background focus:bg-background border-border"
               value={searchTerm}
               onChange={(e) => {
@@ -165,7 +162,6 @@ export default function TurfsPage() {
             />
           </div>
         </CardHeader>
-        
         <CardContent className="p-0 flex flex-col min-h-[400px]">
           {isLoading ? (
             <div className="py-20 flex flex-col justify-center items-center text-brand-mint">
@@ -175,20 +171,20 @@ export default function TurfsPage() {
           ) : isError ? (
             <div className="py-20 text-center text-red-500 font-medium bg-red-500/5 m-4 rounded-xl border border-red-500/20">Failed to load turfs. Please try again later.</div>
           ) : filteredTurfs.length === 0 ? (
-              <EmptyState 
-                icon={viewMode === 'PENDING' ? CheckCircle : MapPin} 
-                title={
-                  viewMode === 'PENDING' ? "All Caught Up!" : 
-                  viewMode === 'APPROVED' ? "No Approved Turfs Found" : 
-                  "No Rejected Turfs"
-                }
-                description={
-                  viewMode === 'PENDING' ? "There are no pending turfs awaiting approval." : 
+            <EmptyState
+              icon={viewMode === 'PENDING' ? CheckCircle : MapPin}
+              title={
+                viewMode === 'PENDING' ? "All Caught Up!" :
+                  viewMode === 'APPROVED' ? "No Approved Turfs Found" :
+                    "No Rejected Turfs"
+              }
+              description={
+                viewMode === 'PENDING' ? "There are no pending turfs awaiting approval." :
                   viewMode === 'APPROVED' ? "Try adjusting your search criteria or changing the view mode." :
-                  "There are currently no rejected turfs."
-                }
-                action={<Button variant="outline" onClick={() => { setSearchTerm(''); }}>Clear Search</Button>}
-              />
+                    "There are currently no rejected turfs."
+              }
+              action={<Button variant="outline" onClick={() => { setSearchTerm(''); }}>Clear Search</Button>}
+            />
           ) : (
             <div className="w-full">
               {/* Desktop Table View */}
@@ -249,9 +245,9 @@ export default function TurfsPage() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-2 transition-opacity opacity-100">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 className="text-brand-mint hover:bg-brand-mint/10 hover:text-brand-mint border-brand-mint/20"
                                 onClick={() => setViewTurfDetails(turf)}
                               >
@@ -260,17 +256,17 @@ export default function TurfsPage() {
 
                               {viewMode === 'PENDING' && (
                                 <>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
                                     className="text-red-500 hover:text-white hover:bg-red-500 border-red-500/20"
                                     onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'reject' })}
                                     disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                                   >
                                     <XCircle className="w-4 h-4 mr-1.5" /> Reject
                                   </Button>
-                                  <Button 
-                                    size="sm" 
+                                  <Button
+                                    size="sm"
                                     className="bg-brand-mint text-brand-dark-green hover:bg-brand-caribbean"
                                     onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'approve' })}
                                     disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
@@ -282,17 +278,17 @@ export default function TurfsPage() {
 
                               {viewMode === 'APPROVED' && (
                                 <>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
                                     className="text-red-500 hover:text-white hover:bg-red-500 border-red-500/20"
                                     onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'reject' })}
                                     disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                                   >
                                     <XCircle className="w-4 h-4 mr-1.5" /> Reject
                                   </Button>
-                                  <Button 
-                                    variant="ghost" 
+                                  <Button
+                                    variant="ghost"
                                     size="icon"
                                     className="text-red-500 hover:bg-red-500 hover:text-white transition-colors"
                                     onClick={() => {
@@ -307,16 +303,16 @@ export default function TurfsPage() {
 
                               {viewMode === 'REJECTED' && (
                                 <>
-                                  <Button 
-                                    size="sm" 
+                                  <Button
+                                    size="sm"
                                     className="bg-brand-mint text-brand-dark-green hover:bg-brand-caribbean"
                                     onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'approve' })}
                                     disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                                   >
                                     <CheckCircle className="w-4 h-4 mr-1.5" /> Approve
                                   </Button>
-                                  <Button 
-                                    variant="ghost" 
+                                  <Button
+                                    variant="ghost"
                                     size="icon"
                                     className="text-red-500 hover:bg-red-500 hover:text-white transition-colors"
                                     onClick={() => {
@@ -341,7 +337,7 @@ export default function TurfsPage() {
               <div className="md:hidden flex flex-col gap-4 p-4">
                 <AnimatePresence mode="popLayout">
                   {paginatedTurfs.map((turf) => (
-                    <motion.div 
+                    <motion.div
                       key={turf.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -366,7 +362,7 @@ export default function TurfsPage() {
                             {Number(turf.price_per_hour).toLocaleString()}
                           </div>
                         </div>
-                        
+
                         <div className="flex gap-1.5 flex-wrap">
                           {turf.sports?.map((sport, i) => {
                             const sportName = typeof sport === 'string' ? sport : sport.name
@@ -375,10 +371,10 @@ export default function TurfsPage() {
                             )
                           })}
                         </div>
-                        
+
                         <div className="pt-2 border-t border-border flex items-center justify-end gap-2 flex-wrap">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             className="flex-1 min-w-[100px] text-brand-mint hover:bg-brand-mint/10 hover:text-brand-mint border-brand-mint/20"
                             onClick={() => setViewTurfDetails(turf)}
                           >
@@ -387,15 +383,15 @@ export default function TurfsPage() {
 
                           {viewMode === 'PENDING' && (
                             <>
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 className="flex-1 min-w-[100px] text-red-500 hover:text-white hover:bg-red-500 border-red-500/20"
                                 onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'reject' })}
                                 disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                               >
                                 <XCircle className="w-4 h-4 mr-1.5" /> Reject
                               </Button>
-                              <Button 
+                              <Button
                                 className="flex-1 min-w-[100px] bg-brand-mint text-brand-dark-green hover:bg-brand-caribbean"
                                 onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'approve' })}
                                 disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
@@ -407,16 +403,16 @@ export default function TurfsPage() {
 
                           {viewMode === 'APPROVED' && (
                             <>
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 className="flex-1 min-w-[100px] text-red-500 hover:text-white hover:bg-red-500 border-red-500/20"
                                 onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'reject' })}
                                 disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                               >
                                 <XCircle className="w-4 h-4 mr-1.5" /> Reject
                               </Button>
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 className="flex-none text-red-500 hover:bg-red-500 hover:text-white border-red-500/20"
                                 onClick={() => {
                                   setSelectedTurf(turf)
@@ -430,15 +426,15 @@ export default function TurfsPage() {
 
                           {viewMode === 'REJECTED' && (
                             <>
-                              <Button 
+                              <Button
                                 className="flex-1 min-w-[100px] bg-brand-mint text-brand-dark-green hover:bg-brand-caribbean"
                                 onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'approve' })}
                                 disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                               >
                                 <CheckCircle className="w-4 h-4 mr-1.5" /> Approve
                               </Button>
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 className="flex-none text-red-500 hover:bg-red-500 hover:text-white border-red-500/20"
                                 onClick={() => {
                                   setSelectedTurf(turf)
@@ -460,7 +456,7 @@ export default function TurfsPage() {
 
           {!isLoading && !isError && filteredTurfs.length > 0 && (
             <div className="mt-auto px-6 py-4 border-t border-border bg-muted/10">
-              <Pagination 
+              <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
@@ -475,8 +471,8 @@ export default function TurfsPage() {
           <p className="text-sm text-muted-foreground">Are you sure you want to delete <strong>{selectedTurf?.name}</strong>? This action cannot be undone.</p>
           <div className="pt-2 flex justify-end gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
-            <Button 
-              type="button" 
+            <Button
+              type="button"
               size="sm"
               className="bg-red-500 hover:bg-red-600 text-white"
               disabled={deleteMutation.isPending}
@@ -494,20 +490,20 @@ export default function TurfsPage() {
       <Modal isOpen={!!viewTurfDetails} onClose={() => setViewTurfDetails(null)} title={viewTurfDetails?.name || 'Turf Details'}>
         {viewTurfDetails && (
           <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2">
-            
+
             {/* Image Carousel */}
             <div className="w-full h-48 sm:h-64 rounded-xl overflow-hidden bg-muted relative border border-border">
-              <img 
-                src={getTurfImages(viewTurfDetails)[activeImageIndex]} 
-                alt={viewTurfDetails.name} 
-                className="w-full h-full object-cover" 
+              <img
+                src={getTurfImages(viewTurfDetails)[activeImageIndex]}
+                alt={viewTurfDetails.name}
+                className="w-full h-full object-cover"
               />
-              
+
               {/* Thumbnail Nav if more than 1 image */}
               {getTurfImages(viewTurfDetails).length > 1 && (
                 <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2 px-4">
                   {getTurfImages(viewTurfDetails).map((img, idx) => (
-                    <button 
+                    <button
                       key={idx}
                       onClick={() => setActiveImageIndex(idx)}
                       className={`w-12 h-12 rounded-md overflow-hidden border-2 transition-all ${activeImageIndex === idx ? 'border-brand-mint scale-110 shadow-lg' : 'border-white/50 opacity-70 hover:opacity-100'}`}
