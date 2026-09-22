@@ -157,7 +157,7 @@ export default function ReportsPage() {
   // 5. Cancellations Rate
   const cancellationRate = useMemo(() => {
     if (!bookings || bookings.length === 0) return 0
-    const cancelled = bookings.filter(b => String(b.status).toUpperCase() === 'CANCELLED').length
+    const cancelled = bookings.filter(b => String(b.status).toUpperCase().includes('CANCEL')).length
     return ((cancelled / bookings.length) * 100).toFixed(1)
   }, [bookings])
 

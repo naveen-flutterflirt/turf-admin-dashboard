@@ -127,7 +127,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
       if (!token) throw new Error("No authorization token found")
 
       // 1. Get presigned URL
-      const presignedRes = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/upload/presigned-url', {
+      const presignedRes = await fetch(process.env.NEXT_PUBLIC_API_URL + '/upload/presigned-url', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

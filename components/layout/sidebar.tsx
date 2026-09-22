@@ -2,7 +2,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Users, UserSquare2, TentTree, CalendarCheck, CreditCard, PieChart, Dumbbell, Settings, LogOut, Clock, MessageSquare, Megaphone } from 'lucide-react'
+import { LayoutDashboard, Users, UserSquare2, TentTree, CalendarCheck, CreditCard, PieChart, Dumbbell, Settings, LogOut, Clock, MessageSquare, Megaphone, Image as ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 
@@ -17,6 +17,7 @@ const navItems = [
   { name: 'Sports', href: '/admin/sports', icon: Dumbbell },
   { name: 'Queries', href: '/admin/queries', icon: MessageSquare },
   { name: 'Broadcasts', href: '/admin/broadcasts', icon: Megaphone },
+  { name: 'Banners', href: '/admin/banners', icon: ImageIcon },
   // { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
