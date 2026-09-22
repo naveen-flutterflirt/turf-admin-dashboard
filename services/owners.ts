@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 export interface Owner {
   owner_id: string
@@ -17,7 +17,7 @@ export const ownersService = {
 
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.get('https://api.eatmeat.live/admin/owners', {
+    const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + '/admin/owners', {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -33,7 +33,7 @@ export const ownersService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.delete(`https://api.eatmeat.live/admin/owners/${owner_id}`, {
+    const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/admin/owners/${owner_id}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }

@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 export interface Booking {
   booking_id: string
@@ -18,7 +18,7 @@ export interface Booking {
   customer_phone: string
 }
 
-const API_URL = 'https://api.eatmeat.live'
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const bookingsService = {
   getBookings: async (): Promise<Booking[]> => {

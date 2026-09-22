@@ -76,7 +76,7 @@ export default function TurfsPage() {
 
   // Reset active image when opening a new details modal
   React.useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setActiveImageIndex(0)
   }, [viewTurfDetails])
 
@@ -86,7 +86,7 @@ export default function TurfsPage() {
   const getTurfImages = (t: Turf | null): string[] => {
     if (!t) return [FALLBACK_IMAGE]
     if (t.images && t.images.length > 0) {
-      return t.images.map((img: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => typeof img === 'string' ? img : (img.image_url || img.url)).filter(Boolean)
+      return t.images.map((img: any  ) => typeof img === 'string' ? img : (img.image_url || img.url)).filter(Boolean)
     }
     if (t.image) return [t.image]
     return [FALLBACK_IMAGE]

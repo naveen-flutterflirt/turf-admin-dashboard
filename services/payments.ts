@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 export interface PaymentStats {
   total_revenue: number
@@ -26,7 +26,7 @@ export interface PaymentsResponse {
   data: Payment[]
 }
 
-const API_URL = 'https://api.eatmeat.live'
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const paymentsService = {
   getPayments: async (): Promise<PaymentsResponse> => {

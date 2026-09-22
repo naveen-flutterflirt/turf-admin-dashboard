@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 export interface User {
   id: string
@@ -8,7 +8,7 @@ export interface User {
   created_at: string
 }
 
-const API_URL = 'https://api.eatmeat.live'
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const usersService = {
   getUsers: async (): Promise<User[]> => {
@@ -46,7 +46,7 @@ export const usersService = {
       }
 
       // Otherwise, any 2xx response (including 204 No Content with empty data) is considered successful
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     } catch (error: any) {
       // If it's a 404, the endpoint might be singular, but we assume REST plural standard here
       throw new Error(error.response?.data?.message || error.message || "Failed to delete customer")

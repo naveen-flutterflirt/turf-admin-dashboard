@@ -74,22 +74,22 @@ export default function DashboardPage() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid gap-3 sm:gap-6 grid-cols-2 lg:grid-cols-4"
+        className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
       >
         {summaryData.map((item) => (
           <motion.div key={item.title} variants={itemVariants}>
             <Card className="hover:border-primary/40 transition-all duration-300 h-full shadow-sm bg-card/40 backdrop-blur-xl border-border/50 group">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors truncate pr-2">
                   {item.title}
                 </CardTitle>
-                <div className={`p-2 rounded-xl ${item.bg} group-hover:scale-110 transition-transform`}>
+                <div className={`p-2 rounded-xl ${item.bg} group-hover:scale-110 transition-transform shrink-0`}>
                   <item.icon className={`h-4 w-4 ${item.color}`} />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-foreground">{item.value}</div>
-                <p className="text-xs text-muted-foreground mt-2 font-medium flex items-center gap-1">
+                <div className="text-2xl sm:text-3xl font-bold text-foreground">{item.value}</div>
+                <p className="text-xs text-muted-foreground mt-2 font-medium flex items-center gap-1 truncate">
                   {item.trend}
                 </p>
               </CardContent>
@@ -98,15 +98,15 @@ export default function DashboardPage() {
         ))}
       </motion.div>
 
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
         {/* Recent Bookings Feed directly from Bookings API */}
         <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-4">
             <div>
               <CardTitle>Recent Bookings</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">Live from Bookings API</p>
             </div>
-            <Link href="/admin/bookings">
+            <Link href="/admin/bookings" className="self-end xs:self-auto">
               <Button variant="outline" size="sm" className="rounded-full border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-background transition-all duration-300">
                 View All <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
@@ -117,12 +117,12 @@ export default function DashboardPage() {
               {recentBookings.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground">No bookings found.</div>
               ) : recentBookings.map((booking, i) => (
-                <div key={booking.booking_id || i} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-xl transition-colors border border-transparent hover:border-border">
-                  <div>
-                    <p className="font-semibold text-sm">{booking.turf_name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{booking.customer_name} • {booking.booking_date.split('T')[0]}</p>
+                <div key={booking.booking_id || i} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-xl transition-colors border border-transparent hover:border-border gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm truncate">{booking.turf_name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{booking.customer_name} • {booking.booking_date.split('T')[0]}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <div className="font-bold text-primary text-sm">₹{parseFloat(booking.total_price || '0').toLocaleString('en-IN')}</div>
                     <div className={`text-xs mt-0.5 font-medium px-2 py-0.5 rounded-full inline-block ${
                       booking.status === 'CONFIRMED' ? 'bg-green-500/10 text-green-500' :
@@ -140,12 +140,12 @@ export default function DashboardPage() {
 
         {/* Recent Payments Feed directly from Payments API */}
         <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-4">
             <div>
               <CardTitle>Recent Transactions</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">Live from Payments API</p>
             </div>
-            <Link href="/admin/payments">
+            <Link href="/admin/payments" className="self-end xs:self-auto">
               <Button variant="outline" size="sm" className="rounded-full border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-background transition-all duration-300">
                 View All <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
@@ -156,12 +156,12 @@ export default function DashboardPage() {
               {recentPayments.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground">No transactions found.</div>
               ) : recentPayments.map((payment, i) => (
-                <div key={`${payment.booking_id || 'payment'}-${i}`} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-xl transition-colors border border-transparent hover:border-border">
-                  <div>
-                    <p className="font-semibold text-sm">{payment.turf_name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{payment.customer_name} • {new Date(payment.payment_date).toLocaleDateString()}</p>
+                <div key={`${payment.booking_id || 'payment'}-${i}`} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-xl transition-colors border border-transparent hover:border-border gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm truncate">{payment.turf_name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{payment.customer_name} • {new Date(payment.payment_date).toLocaleDateString()}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <div className="font-bold text-primary text-sm">₹{parseFloat(payment.amount || '0').toLocaleString('en-IN')}</div>
                     <div className={`text-xs mt-0.5 font-medium px-2 py-0.5 rounded-full inline-block ${
                       payment.payment_status === 'CONFIRMED' ? 'bg-green-500/10 text-green-500' :

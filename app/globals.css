@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 :root {
   /* Light Mode - Base colors leveraging Anti-Flash White & Rich Black/Dark Green */
   --background: #F1F7F6;
@@ -24,8 +26,7 @@
   --radius: 0.75rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+.dark {
     /* Sophisticated Dark Mode - Lighter than pitch black, softer contrast */
     --background: #041211;
     --foreground: #F1F7F6;
@@ -48,7 +49,6 @@
     --border: #113835;
     --input: #0A2624;
   }
-}
 
 @theme inline {
   --color-background: var(--background);

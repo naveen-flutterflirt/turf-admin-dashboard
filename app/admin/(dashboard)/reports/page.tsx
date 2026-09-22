@@ -13,7 +13,7 @@ import {
 } from 'recharts'
 
 // Custom Tooltip for Revenue Chart
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const CustomRevenueTooltip = ({ active, payload, label }: { active?: boolean; payload?: any[]; label?: string }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
@@ -41,7 +41,7 @@ const CustomRevenueTooltip = ({ active, payload, label }: { active?: boolean; pa
 };
 
 // Custom Tooltip for Bookings Chart
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const CustomBookingsTooltip = ({ active, payload, label }: { active?: boolean; payload?: any[]; label?: string }) => {
   if (active && payload && payload.length) {
     return (

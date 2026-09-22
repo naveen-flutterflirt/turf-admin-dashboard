@@ -7,7 +7,7 @@ import { Toaster, toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 export default function EditTurfPage() {
   const router = useRouter()
@@ -23,28 +23,104 @@ export default function EditTurfPage() {
     const fetchTurf = async () => {
       try {
         setIsLoading(true)
-        // Normally: await axios.get(`https://turf-booking-1-mns7.onrender.com/owner-turf/${turfId}`)
-        // Mocking delay for fetching single turf
-        await new Promise(resolve => setTimeout(resolve, 800))
-        
-        // Mock data
-        setInitialData({
-          name: 'Green Field Arena',
-          description: 'A premium 6v6 football and cricket turf.',
-          price_per_hour: 1500,
-          address: '123 Sports Avenue',
-          city: 'Mumbai',
-          state: 'Maharashtra',
-          pincode: '400001',
-          opening_time: '06:00',
-          closing_time: '23:00',
-          sports: ['Cricket', 'Football'],
-          amenities: ['Parking', 'Washroom'],
-          images: [{ url: 'https://images.unsplash.com/photo-1459865264687-595d652de67e?q=80&w=2000&auto=format&fit=crop', key: 'mock-key.jpg' }]
+        const token = typeof window !== 'undefined' ? localStorage.getItem('owner_token') : null
+        if (!token) throw new Error("No authorization token found")
+
+        let data;
+        try {
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/owner/turfs/${turfId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+          const resData = response.data
+          if (resData.success === false) {
+            throw new Error(resData.message || "Failed to fetch turf")
+          }
+          data = resData.data || resData
+        } catch (err: any) {
+          // If the specific GET /:id endpoint doesn't exist (404), fallback to getting all and filtering
+          if (err.response && err.response.status === 404) {
+            console.log("Specific turf endpoint returned 404, falling back to list API...")
+            const listResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/owner/turfs`, {
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            const allTurfs = listResponse.data?.data || listResponse.data || []
+            data = allTurfs.find((t: any) => (t.id || t.turf_id) === turfId)
+
+            if (!data) {
+              throw new Error("Turf not found in your list.")
+            }
+          } else {
+            throw err
+          }
+        }
+
+        let parsedImages = data.images || [];
+        if (typeof parsedImages === 'string') {
+          if (parsedImages.includes(',')) {
+            parsedImages = parsedImages.split(',');
+          } else {
+            try {
+              parsedImages = JSON.parse(parsedImages);
+            } catch (e) {
+              parsedImages = [parsedImages];
+            }
+          }
+        }
+        if (!Array.isArray(parsedImages)) {
+          parsedImages = [parsedImages]
+        }
+
+        const formattedImages = parsedImages.map((img: any) => {
+          if (typeof img === 'string') {
+            try {
+              const p = JSON.parse(img);
+              return { url: p.image_url || p.url || p, key: p.key || 'image' }
+            } catch {
+              return { url: img, key: 'image' }
+            }
+          }
+          return { url: img.image_url || img.url, key: img.key || 'image' }
         })
-      } catch (error) {
-        console.error(error)
-        toast.error("Failed to load turf details.")
+
+        const uniqueImages = Array.from(new Set(formattedImages.map((img: any) => img.url)))
+          .map(url => formattedImages.find((img: any) => img.url === url));
+
+        let parsedSports = data.sports || [];
+        if (typeof parsedSports === 'string') {
+          if (parsedSports.includes(',')) {
+             parsedSports = parsedSports.split(',');
+          } else {
+             try { parsedSports = JSON.parse(parsedSports) } catch { parsedSports = [parsedSports] }
+          }
+        }
+        let parsedAmenities = data.amenities || [];
+        if (typeof parsedAmenities === 'string') {
+          if (parsedAmenities.includes(',')) {
+             parsedAmenities = parsedAmenities.split(',');
+          } else {
+             try { parsedAmenities = JSON.parse(parsedAmenities) } catch { parsedAmenities = [parsedAmenities] }
+          }
+        }
+
+        setInitialData({
+          name: data.name || data.turf_name || '',
+          description: data.description || '',
+          price_per_hour: data.price_per_hour || data.price || 0,
+          address: (data.address && typeof data.address === 'object' ? data.address?.name : data.address) || '',
+          city: (data.city && typeof data.city === 'object' ? data.city?.name : data.city) || '',
+          state: (data.state && typeof data.state === 'object' ? data.state?.name : data.state) || '',
+          pincode: (data.pincode && typeof data.pincode === 'object' ? data.pincode?.name : data.pincode) || '',
+          opening_time: data.opening_time ? data.opening_time.slice(0, 5) : '06:00',
+          closing_time: data.closing_time ? data.closing_time.slice(0, 5) : '23:00',
+          sports: Array.isArray(parsedSports) ? Array.from(new Set(parsedSports.map((s: any) => typeof s === 'object' ? s.name || s.id : s))) : [],
+          amenities: Array.isArray(parsedAmenities) ? Array.from(new Set(parsedAmenities.map((a: any) => typeof a === 'object' ? a.name || a.id : a))) : [],
+          images: uniqueImages
+        })
+      } catch (error: any) {
+        console.error("Fetch turf error:", error)
+        toast.error(error.response?.data?.message || error.message || "Failed to load turf details.")
       } finally {
         setIsLoading(false)
       }
@@ -58,19 +134,38 @@ export default function EditTurfPage() {
   const handleSubmit = async (data: TurfFormValues) => {
     setIsSubmitting(true)
     try {
-      // Simulate API call delay for Edit Turf
-      // Normally: await axios.put(`https://turf-booking-1-mns7.onrender.com/edit-turf/${turfId}`, data)
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      console.log('Mock Turf Updated:', data)
-      toast.success("Turf updated successfully! (Mocked)")
-      
-      setTimeout(() => {
-        router.push('/owner/turfs')
-      }, 1000)
-    } catch (error) {
-      console.error(error)
-      toast.error("Failed to update turf.")
+      const token = typeof window !== 'undefined' ? localStorage.getItem('owner_token') : null
+      if (!token) throw new Error("No authorization token found")
+
+      const payload = {
+        ...data,
+        latitude: 18.921984,
+        longitude: 72.834654,
+        opening_time: data.opening_time.length === 5 ? `${data.opening_time}:00` : data.opening_time,
+        closing_time: data.closing_time.length === 5 ? `${data.closing_time}:00` : data.closing_time,
+        sports: data.sports,
+        amenities: data.amenities,
+        images: data.images
+      }
+
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/owner/turfs/${turfId}`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (response.data && response.data.success !== false) {
+        toast.success(response.data.message || "Turf updated successfully!")
+        setTimeout(() => {
+          window.location.href = '/owner/turfs'
+        }, 1500)
+      } else {
+        toast.error(response.data?.message || "Failed to update turf.")
+        setIsSubmitting(false)
+      }
+    } catch (error: any) {
+      console.error("Update turf error:", error)
+      toast.error(error.response?.data?.message || error.message || "Failed to update turf.")
       setIsSubmitting(false)
     }
   }
@@ -78,10 +173,10 @@ export default function EditTurfPage() {
   return (
     <div className="space-y-6 pb-10 max-w-4xl mx-auto">
       <Toaster position="top-right" richColors />
-      
+
       <div className="flex items-center gap-4">
         <Link href="/owner/turfs">
-          <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
+          <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent hover:text-accent-foreground">
             <ArrowLeft className="w-5 h-5" />
           </Button>
         </Link>

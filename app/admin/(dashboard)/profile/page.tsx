@@ -18,7 +18,7 @@ export default function ProfilePage() {
       try {
         const user = JSON.parse(userStr)
          
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+         
         setProfileData({
           name: user.name || 'Admin User',
           email: user.email || 'admin@turf.com',

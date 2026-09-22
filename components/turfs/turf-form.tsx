@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { MapPin, TentTree, IndianRupee, Loader2, Image as ImageIcon, Plus, Trash2, Clock, AlignLeft, Building2, Map, MapPinned, Trophy, CheckSquare, UploadCloud, X } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
+import axios from 'axios'
 
 const turfSchema = z.object({
   name: z.string().min(3, 'Turf name must be at least 3 characters'),
@@ -36,10 +37,24 @@ interface TurfFormProps {
   isSubmitting?: boolean
 }
 
+const getImageUrl = (image: any) => {
+  if (!image) return null
+  if (typeof image === 'string') {
+    try {
+      const parsed = JSON.parse(image)
+      return parsed.url || parsed.image_url || `https://asset-management-pro.s3.ap-south-1.amazonaws.com/${parsed.key}`
+    } catch {
+      if (image.startsWith('http')) return image
+      return `https://asset-management-pro.s3.ap-south-1.amazonaws.com/${image}`
+    }
+  }
+  return image.url || image.image_url || (image.key ? `https://asset-management-pro.s3.ap-south-1.amazonaws.com/${image.key}` : null)
+}
+
 export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFormProps) {
   const defaultImages = initialData?.images && initialData.images.length > 0 
     ? initialData.images 
-    : [{ url: '', key: `turf-images/${Date.now()}-mock.jpg` }]
+    : [{ url: '', key: `turf-images/${Date.now()}-placeholder.jpg` }]
 
   const { register, control, handleSubmit, setValue, watch, formState: { errors } } = useForm<TurfFormValues>({
     resolver: zodResolver(turfSchema),
@@ -108,22 +123,59 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
 
     setUploadingImageIndex(index)
     try {
-      // MOCK UPLOAD TO S3
-      // In a real scenario, you'd send 'file' to your backend or directly to S3 via pre-signed URL here
-      await new Promise(resolve => setTimeout(resolve, 1500)) 
-      
-      const mockKey = `turf-images/${Date.now()}-${file.name}`
-      // We cannot use URL.createObjectURL(file) because it saves a temporary localhost blob URL to your database.
-      // Until the actual AWS S3 upload endpoint is provided, we will save a reliable static image URL.
-      const mockUrl = "https://images.unsplash.com/photo-1518605368461-1ee7e54f7fb7?q=80&w=2000&auto=format&fit=crop"
+      const token = typeof window !== 'undefined' ? localStorage.getItem('owner_token') : null
+      if (!token) throw new Error("No authorization token found")
 
-      // Update the form values
-      setValue(`images.${index}.url`, mockUrl, { shouldValidate: true })
-      setValue(`images.${index}.key`, mockKey, { shouldValidate: true })
-      toast.success("Image uploaded successfully (Mocked)")
-    } catch (error) {
+      // 1. Get presigned URL
+      const presignedRes = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/upload/presigned-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          folder: 'turf-images'
+        })
+      })
+
+      const presignedData = await presignedRes.json()
+      console.log("Presigned Data Response:", presignedData)
+      
+      if (!presignedData.success) {
+        throw new Error(presignedData.message || "Failed to get presigned URL")
+      }
+
+      // Check where uploadUrl actually is
+      const uploadUrl = presignedData.data?.uploadUrl || presignedData.uploadUrl
+      const fileUrl = presignedData.data?.fileUrl || presignedData.fileUrl || presignedData.data?.url || presignedData.url
+      const key = presignedData.data?.key || presignedData.key || 'turf-images/temp'
+
+      console.log("Extracted URLs -> uploadUrl:", uploadUrl, "fileUrl:", fileUrl)
+
+      if (!uploadUrl) {
+        throw new Error("No upload URL received from the backend")
+      }
+
+      // 2. Upload the raw file directly using Axios to get better error details
+      const uploadRes = await axios.put(uploadUrl, file, {
+        headers: {
+          'Content-Type': file.type
+        }
+      })
+
+      if (uploadRes.status !== 200 && uploadRes.status !== 201) {
+        throw new Error(`Failed to upload image. Status: ${uploadRes.status}`)
+      }
+
+      // 3. Update the form values with the final real S3 URL
+      setValue(`images.${index}.url`, fileUrl, { shouldValidate: true })
+      setValue(`images.${index}.key`, key, { shouldValidate: true })
+      toast.success("Image uploaded successfully!")
+    } catch (error: any) {
       console.error(error)
-      toast.error("Failed to upload image")
+      toast.error(error.message || "Failed to upload image")
     } finally {
       setUploadingImageIndex(null)
     }
@@ -143,7 +195,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <div className="relative">
                   <TentTree className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
-                    className={`pl-12 h-12 bg-black/20 border-white/10 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.name ? 'border-red-500/50' : ''}`}
+                    className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.name ? 'border-red-500/50' : ''}`}
                     placeholder="e.g., Green Field Arena"
                     {...register('name')}
                   />
@@ -157,7 +209,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                   <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
                     type="number"
-                    className={`pl-12 h-12 bg-black/20 border-white/10 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.price_per_hour ? 'border-red-500/50' : ''}`}
+                    className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.price_per_hour ? 'border-red-500/50' : ''}`}
                     placeholder="e.g., 1500"
                     {...register('price_per_hour', { valueAsNumber: true })}
                   />
@@ -170,7 +222,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <div className="relative">
                   <AlignLeft className="absolute left-4 top-3 h-5 w-5 text-muted-foreground" />
                   <textarea 
-                    className={`w-full pl-12 pt-3 h-24 bg-black/20 border border-white/10 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl resize-none outline-none text-sm ${errors.description ? 'border-red-500/50' : ''}`}
+                    className={`w-full pl-12 pt-3 h-24 bg-background border border-border/50 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl resize-none outline-none text-sm ${errors.description ? 'border-red-500/50' : ''}`}
                     placeholder="Describe your turf, surface type, field size, etc."
                     {...register('description')}
                   />
@@ -189,7 +241,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
-                    className={`pl-12 h-12 bg-black/20 border-white/10 focus:border-brand-mint transition-all rounded-xl ${errors.address ? 'border-red-500/50' : ''}`}
+                    className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.address ? 'border-red-500/50' : ''}`}
                     placeholder="123 Main Road, Near Station"
                     {...register('address')}
                   />
@@ -202,7 +254,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <div className="relative">
                   <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
-                    className={`pl-12 h-12 bg-black/20 border-white/10 focus:border-brand-mint transition-all rounded-xl ${errors.city ? 'border-red-500/50' : ''}`}
+                    className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.city ? 'border-red-500/50' : ''}`}
                     placeholder="Bhopal"
                     {...register('city')}
                   />
@@ -215,7 +267,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <div className="relative">
                   <Map className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
-                    className={`pl-12 h-12 bg-black/20 border-white/10 focus:border-brand-mint transition-all rounded-xl ${errors.state ? 'border-red-500/50' : ''}`}
+                    className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.state ? 'border-red-500/50' : ''}`}
                     placeholder="Madhya Pradesh"
                     {...register('state')}
                   />
@@ -228,7 +280,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <div className="relative">
                   <MapPinned className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
-                    className={`pl-12 h-12 bg-black/20 border-white/10 focus:border-brand-mint transition-all rounded-xl ${errors.pincode ? 'border-red-500/50' : ''}`}
+                    className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.pincode ? 'border-red-500/50' : ''}`}
                     placeholder="462022"
                     {...register('pincode')}
                   />
@@ -248,7 +300,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
                     type="time" step="1"
-                    className={`pl-12 h-12 bg-black/20 border-white/10 focus:border-brand-mint transition-all rounded-xl ${errors.opening_time ? 'border-red-500/50' : ''}`}
+                    className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.opening_time ? 'border-red-500/50' : ''}`}
                     {...register('opening_time')}
                   />
                 </div>
@@ -260,7 +312,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
                     type="time" step="1"
-                    className={`pl-12 h-12 bg-black/20 border-white/10 focus:border-brand-mint transition-all rounded-xl ${errors.closing_time ? 'border-red-500/50' : ''}`}
+                    className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.closing_time ? 'border-red-500/50' : ''}`}
                     {...register('closing_time')}
                   />
                 </div>
@@ -282,7 +334,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                   onChange={(e) => setSportInput(e.target.value)}
                   onKeyDown={handleAddSport}
                   placeholder="Type a sport and press Enter (e.g., Cricket)"
-                  className="h-11 bg-black/20 border-white/10 focus:border-brand-mint transition-all rounded-xl"
+                  className="h-11 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl"
                 />
                 <Button 
                   type="button" 
@@ -319,7 +371,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                   onChange={(e) => setAmenityInput(e.target.value)}
                   onKeyDown={handleAddAmenity}
                   placeholder="Type an amenity and press Enter (e.g., Parking)"
-                  className="h-11 bg-black/20 border-white/10 focus:border-brand-mint transition-all rounded-xl"
+                  className="h-11 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl"
                 />
                 <Button 
                   type="button" 
@@ -334,7 +386,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 {selectedAmenities.map(amenity => (
                   <div
                     key={amenity}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-full border bg-brand-caribbean/80 text-white border-brand-caribbean text-sm font-medium"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full border bg-brand-caribbean/80 text-foreground border-brand-caribbean text-sm font-medium"
                   >
                     {amenity}
                     <button type="button" onClick={() => removeAmenity(amenity)} className="hover:text-red-200 transition-colors ml-1">
@@ -356,7 +408,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 type="button" 
                 variant="outline" 
                 size="sm" 
-                onClick={() => append({ url: '', key: `turf-images/${Date.now()}-mock.jpg` })}
+                onClick={() => append({ url: '', key: `turf-images/${Date.now()}-placeholder.jpg` })}
                 className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
               >
                 <Plus className="w-4 h-4 mr-1" /> Add Image Link
@@ -380,18 +432,18 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                       {/* Custom Upload Button / Preview */}
                       <label 
                         htmlFor={`image-upload-${index}`}
-                        className={`flex items-center justify-between w-full h-14 px-4 bg-black/20 border border-white/10 hover:border-brand-mint/50 transition-all rounded-xl cursor-pointer ${errors.images?.[index]?.url ? 'border-red-500/50' : ''}`}
+                        className={`flex items-center justify-between w-full h-14 px-4 bg-background border border-border/50 hover:border-brand-mint/50 transition-all rounded-xl cursor-pointer ${errors.images?.[index]?.url ? 'border-red-500/50' : ''}`}
                       >
                         <div className="flex items-center gap-3 truncate">
                           {uploadingImageIndex === index ? (
                             <Loader2 className="w-5 h-5 text-brand-mint animate-spin" />
                           ) : watch(`images.${index}.url`) ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={watch(`images.${index}.url`)} alt="Preview" className="w-8 h-8 rounded-md object-cover border border-white/20" />
+                             
+                            <img src={getImageUrl(watch(`images.${index}`)) || watch(`images.${index}.url`)} alt="Preview" className="w-8 h-8 rounded-md object-cover border border-border/50" />
                           ) : (
                             <ImageIcon className="w-5 h-5 text-muted-foreground" />
                           )}
-                          <span className="text-sm font-medium truncate text-white/80">
+                          <span className="text-sm font-medium truncate text-muted-foreground">
                             {uploadingImageIndex === index 
                               ? "Uploading to S3..." 
                               : watch(`images.${index}.url`) 

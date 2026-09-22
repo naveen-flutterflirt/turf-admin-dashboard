@@ -39,7 +39,7 @@ export default function QueriesPage() {
       setReplyText('')
       toast.success("Replied to query successfully")
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     onError: (error: any) => {
       toast.error(error.message || "An error occurred while replying to the query")
     }
@@ -83,7 +83,7 @@ export default function QueriesPage() {
         </div>
       </div>
 
-      <Card>
+      <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between gap-3 p-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

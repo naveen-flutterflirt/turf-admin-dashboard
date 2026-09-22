@@ -2,7 +2,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, TentTree, CalendarCheck, UserSquare2, LogOut } from 'lucide-react'
+import { LayoutDashboard, TentTree, CalendarCheck, UserSquare2, LogOut, MessageSquareText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 
@@ -10,6 +10,7 @@ const navItems = [
   { name: 'Dashboard', href: '/owner/dashboard', icon: LayoutDashboard },
   { name: 'My Turfs', href: '/owner/turfs', icon: TentTree },
   { name: 'Bookings', href: '/owner/bookings', icon: CalendarCheck },
+  { name: 'Support', href: '/owner/queries', icon: MessageSquareText },
   { name: 'Profile', href: '/owner/profile', icon: UserSquare2 },
 ]
 
@@ -17,6 +18,21 @@ export function OwnerSidebar({ onNavigate, hideCollapseButton = false }: { onNav
   const pathname = usePathname()
   const router = useRouter()
   const [isCollapsed, setIsCollapsed] = React.useState(false)
+  const [ownerInitial, setOwnerInitial] = React.useState('O')
+
+  React.useEffect(() => {
+    const ownerData = localStorage.getItem('owner_user')
+    if (ownerData) {
+      try {
+        const parsed = JSON.parse(ownerData)
+        if (parsed.name) {
+          setOwnerInitial(parsed.name.charAt(0).toUpperCase())
+        }
+      } catch (e) {
+        console.error("Could not parse owner user data")
+      }
+    }
+  }, [])
 
   const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (onNavigate) {
@@ -82,7 +98,7 @@ export function OwnerSidebar({ onNavigate, hideCollapseButton = false }: { onNav
             animate={{ opacity: 1, scale: 1 }}
             className="w-8 h-8 rounded-lg bg-brand-mint/20 flex items-center justify-center text-brand-dark-green font-bold text-xl"
           >
-            O
+            {ownerInitial}
           </motion.div>
         )}
       </div>

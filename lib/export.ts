@@ -4,7 +4,7 @@
  * @param filename Name of the file to download (without .csv extension)
  * @param headers Optional mapping of object keys to user-friendly column headers
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export function exportToCsv<T extends Record<string, any>>(
   data: T[], 
   filename: string, 

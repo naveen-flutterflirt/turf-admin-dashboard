@@ -15,7 +15,7 @@ export function OwnerLayout({ children }: { children: React.ReactNode }) {
     if (!token) {
       router.push('/owner/login')
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setIsAuthenticated(true)
     }
   }, [router])

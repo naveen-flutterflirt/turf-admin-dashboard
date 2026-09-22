@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 export interface TurfReference {
   id: string
@@ -16,7 +16,7 @@ export const sportsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.get('https://api.eatmeat.live/admin/sports-stats', {
+    const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + '/admin/sports-stats', {
       headers: {
         Authorization: `Bearer ${token}`
       }

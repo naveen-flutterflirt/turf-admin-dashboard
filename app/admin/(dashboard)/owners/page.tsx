@@ -58,7 +58,7 @@ export default function OwnersPage() {
         </div>
       </div>
 
-      <Card>
+      <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between gap-3 p-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

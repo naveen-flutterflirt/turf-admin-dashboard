@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { Loader2, Mail, Lock, ShieldCheck } from 'lucide-react'
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -22,6 +22,13 @@ export default function LoginPage() {
   const router = useRouter()
   const [serverError, setServerError] = useState('')
 
+  React.useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
+    if (token) {
+      router.push('/admin/dashboard')
+    }
+  }, [router])
+
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema)
   })
@@ -29,7 +36,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     setServerError('')
     try {
-      const response = await axios.post('https://api.eatmeat.live/auth/admin/login', {
+      const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + '/auth/admin/login', {
         email: data.email,
         password: data.password
       })
@@ -42,7 +49,7 @@ export default function LoginPage() {
       } else {
         setServerError(response.data.message || 'Login failed')
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.message) {
         setServerError(err.response.data.message)

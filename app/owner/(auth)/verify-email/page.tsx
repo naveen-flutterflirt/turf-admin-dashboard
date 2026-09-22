@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, KeyRound } from 'lucide-react'
-import axios from 'axios'
+import axios from '@/lib/axios'
 import Link from 'next/link'
 
 const verifySchema = z.object({
@@ -42,7 +42,7 @@ function VerifyEmailForm() {
     setSuccessMsg('')
     try {
       // Trying the API route from the screenshot
-      const response = await axios.post('https://turf-booking-1-mns7.onrender.com/auth/verify-email', {
+      const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + '/auth/verify-email', {
         email: email,
         code: data.code
       })
@@ -59,7 +59,7 @@ function VerifyEmailForm() {
       } else {
         setServerError(response.data.message || 'Verification failed')
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.message) {
         setServerError(err.response.data.message)
@@ -78,7 +78,7 @@ function VerifyEmailForm() {
     setSuccessMsg('')
     setIsResending(true)
     try {
-      const response = await axios.post('https://turf-booking-1-mns7.onrender.com/auth/resend-verification', {
+      const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + '/auth/resend-verification', {
         email: email
       })
       if (response.data && response.data.success) {
@@ -86,7 +86,7 @@ function VerifyEmailForm() {
       } else {
         setServerError(response.data.message || 'Failed to resend code')
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.message) {
         setServerError(err.response.data.message)
@@ -148,7 +148,7 @@ function VerifyEmailForm() {
             </motion.div>
             <h2 className="text-2xl font-bold text-white mt-4">Verify Your Email</h2>
             <p className="text-white/70 text-sm">
-              We've sent a verification code to {email ? <span className="font-semibold text-brand-mint">{email}</span> : 'your email address'}.
+              We&apos;ve sent a verification code to {email ? <span className="font-semibold text-brand-mint">{email}</span> : 'your email address'}.
             </p>
           </CardHeader>
           

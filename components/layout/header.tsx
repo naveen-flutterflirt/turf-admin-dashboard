@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Bell, Menu, X } from 'lucide-react'
 import { Button } from '../ui/button'
+import { ThemeToggle } from '../theme-toggle'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { notificationsService, AppNotification } from '@/services/notifications'
@@ -42,6 +43,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         <h2 className="text-lg md:text-xl font-semibold hidden sm:block">{generateBreadcrumb()}</h2>
       </div>
       <div className="flex items-center gap-2 md:gap-4">
+        <ThemeToggle />
         
         {/* Notifications Dropdown */}
         <div className="relative">

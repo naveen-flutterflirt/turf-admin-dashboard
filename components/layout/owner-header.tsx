@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Menu } from 'lucide-react'
 import { Button } from '../ui/button'
+import { ThemeToggle } from '../theme-toggle'
 
 export function OwnerHeader({ onMenuClick }: { onMenuClick?: () => void }) {
   const pathname = usePathname()
@@ -15,7 +16,7 @@ export function OwnerHeader({ onMenuClick }: { onMenuClick?: () => void }) {
       try {
         const parsed = JSON.parse(ownerData)
         if (parsed.name) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
+           
           setOwnerInitial(parsed.name.charAt(0).toUpperCase())
         }
       } catch (e) {
@@ -40,6 +41,7 @@ export function OwnerHeader({ onMenuClick }: { onMenuClick?: () => void }) {
         <h2 className="text-lg md:text-xl font-semibold hidden sm:block">{generateBreadcrumb()}</h2>
       </div>
       <div className="flex items-center gap-2 md:gap-4">
+        <ThemeToggle />
         <div 
           className="h-10 w-10 rounded-full bg-gradient-to-tr from-brand-mint to-brand-caribbean flex items-center justify-center text-brand-dark-green font-bold cursor-pointer shadow-md hover:shadow-lg transition-shadow border-2 border-background ring-2 ring-transparent hover:ring-brand-mint/30" 
           onClick={() => router.push('/owner/profile')}

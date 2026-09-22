@@ -35,6 +35,13 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
     }
   }
 
+  const handleLogout = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    localStorage.removeItem('admin_token')
+    localStorage.removeItem('admin_user')
+    router.push('/admin/login')
+  }
+
   return (
     <motion.div
       initial={false}
@@ -136,6 +143,7 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
       <div className="border-t border-border/40 p-4 bg-gradient-to-b from-transparent to-background/50 overflow-hidden">
         <Link
           href="/admin/login"
+          onClick={handleLogout}
           title={isCollapsed ? "Logout" : undefined}
           className={cn(
             "flex items-center rounded-xl py-3 text-sm font-semibold text-red-500/80 hover:text-red-500 hover:bg-red-500/10 transition-all cursor-pointer group",

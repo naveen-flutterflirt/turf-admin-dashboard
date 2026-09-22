@@ -2,16 +2,19 @@
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { CalendarCheck, Eye, Download } from 'lucide-react'
+import { CalendarCheck, Eye, Download, X, Clock, IndianRupee, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import axios from 'axios'
+import axios from '@/lib/axios'
 import { Toaster, toast } from 'sonner'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function OwnerBookingsPage() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const [bookings, setBookings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  const [selectedBooking, setSelectedBooking] = useState<any>(null)
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false)
 
   const [page, setPage] = useState(1)
   const [limit] = useState(5)
@@ -25,7 +28,7 @@ export default function OwnerBookingsPage() {
         const token = typeof window !== 'undefined' ? localStorage.getItem('owner_token') : null
         if (!token) throw new Error("No authorization token found")
 
-        const response = await axios.get('https://turf-booking-1-mns7.onrender.com/owner/bookings', {
+        const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + '/owner/bookings', {
           params: { page, limit },
           headers: {
             Authorization: `Bearer ${token}`
@@ -38,7 +41,7 @@ export default function OwnerBookingsPage() {
           
           // Industry standard pagination usually returns total items or pages in meta
           if (response.data.meta) {
-            setTotalPages(response.data.meta.totalPages || Math.ceil((response.data.meta.total || 0) / limit))
+            setTotalPages(response.data.meta.total_pages || response.data.meta.totalPages || Math.ceil((response.data.meta.total || 0) / limit))
             setTotalBookings(response.data.meta.total || 0)
           } else if (response.data.total) {
             setTotalPages(Math.ceil(response.data.total / limit))
@@ -68,7 +71,7 @@ export default function OwnerBookingsPage() {
           <h2 className="text-3xl font-bold tracking-tight">Bookings</h2>
           <p className="text-muted-foreground mt-1">View and manage all customer reservations.</p>
         </div>
-        <Button variant="outline" className="bg-card hover:bg-muted border-border/50">
+        <Button variant="outline" className="bg-card border-border/50">
           <Download className="w-4 h-4 mr-2" /> Export
         </Button>
       </div>
@@ -110,26 +113,33 @@ export default function OwnerBookingsPage() {
                   </TableHeader>
                   <TableBody>
                     {bookings.map((booking, idx) => (
-                      <TableRow key={booking.id || idx} className="border-border/50 hover:bg-muted/30">
-                        <TableCell className="font-mono text-xs">{booking.id?.substring(0, 8) || `#${idx + 1}`}</TableCell>
+                      <TableRow key={booking.booking_id || booking.id || idx} className="border-border/50 hover:bg-muted/30">
+                        <TableCell className="font-mono text-xs">{(booking.booking_id || booking.id || '').substring(0, 8) || `#${idx + 1}`}</TableCell>
                         <TableCell className="font-medium">{booking.customer_name || 'N/A'}</TableCell>
                         <TableCell>{booking.turf_name || 'N/A'}</TableCell>
-                        <TableCell>{booking.booking_date || booking.date || 'N/A'}</TableCell>
-                        <TableCell className="text-muted-foreground">{booking.time_slot || booking.time || 'N/A'}</TableCell>
+                        <TableCell>{booking.booking_date ? new Date(booking.booking_date).toLocaleDateString() : booking.date || 'N/A'}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {booking.start_time && booking.end_time 
+                            ? `${booking.start_time.slice(0, 5)} - ${booking.end_time.slice(0, 5)}` 
+                            : booking.time_slot || booking.time || 'N/A'}
+                        </TableCell>
                         <TableCell className="font-semibold text-brand-mint">
-                          ₹{parseFloat(booking.amount || booking.total_price || '0').toLocaleString('en-IN')}
+                          {((booking.status || '').toUpperCase() === 'CONFIRMED' || (booking.status || '').toUpperCase() === 'CONNFIRMED') 
+                            ? `₹${parseFloat(booking.amount || booking.total_price || '0').toLocaleString('en-IN')}` 
+                            : <span className="text-muted-foreground/50 font-normal">-</span>}
                         </TableCell>
                         <TableCell>
-                          <span className={`text-xs font-semibold px-2 py-1 rounded-md ${
-                            (booking.status || '').toUpperCase() === 'CONFIRMED' ? 'bg-green-500/10 text-green-500' :
-                            (booking.status || '').toUpperCase() === 'CANCELLED' ? 'bg-red-500/10 text-red-500' :
-                            'bg-yellow-500/10 text-yellow-500'
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-md border ${
+                            (booking.status || '').toUpperCase() === 'CONFIRMED' || (booking.status || '').toUpperCase() === 'CONNFIRMED' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                            (booking.status || '').toUpperCase() === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                            (booking.status || '').toUpperCase().includes('PENDING') ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' :
+                            'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
                           }`}>
-                            {booking.status || 'PENDING'}
+                            {booking.status === 'CONNFIRMED' ? 'CONFIRMED' : booking.status || 'PENDING'}
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button size="icon" variant="ghost" className="w-8 h-8 hover:text-brand-mint">
+                          <Button size="icon" variant="ghost" className="w-8 h-8 hover:text-brand-mint" onClick={() => { setSelectedBooking(booking); setDetailsModalOpen(true); }}>
                             <Eye className="w-4 h-4" />
                           </Button>
                         </TableCell>
@@ -172,6 +182,139 @@ export default function OwnerBookingsPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Booking Details Modal */}
+      <AnimatePresence>
+        {detailsModalOpen && selectedBooking && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+              onClick={() => setDetailsModalOpen(false)}
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-card border border-border shadow-2xl rounded-2xl overflow-hidden z-50 flex flex-col max-h-[90vh]"
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center p-6 border-b border-border/50 bg-muted/10">
+                <div>
+                  <h2 className="text-xl font-bold tracking-tight">Booking Details</h2>
+                  <p className="text-sm text-muted-foreground mt-1">ID: {selectedBooking.booking_id || selectedBooking.id}</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setDetailsModalOpen(false)} className="rounded-full h-8 w-8 text-muted-foreground hover:text-foreground">
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+                
+                {/* Status & Price Row */}
+                <div className="flex justify-between items-center bg-muted/20 p-4 rounded-xl border border-border/50">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1 font-semibold">Total Amount</p>
+                    <div className="flex items-center gap-1.5 text-2xl font-bold text-brand-mint">
+                      {((selectedBooking.status || '').toUpperCase() === 'CONFIRMED' || (selectedBooking.status || '').toUpperCase() === 'CONNFIRMED') ? (
+                        <>
+                          <IndianRupee className="w-5 h-5" />
+                          {parseFloat(selectedBooking.amount || selectedBooking.total_price || '0').toLocaleString('en-IN')}
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground/50 font-normal">-</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2 font-semibold">Status</p>
+                    <span className={`text-xs font-bold px-3 py-1.5 rounded-full border ${
+                      (selectedBooking.status || '').toUpperCase() === 'CONFIRMED' || (selectedBooking.status || '').toUpperCase() === 'CONNFIRMED' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                      (selectedBooking.status || '').toUpperCase() === 'CANCELLED' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                      (selectedBooking.status || '').toUpperCase().includes('PENDING') ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' :
+                      'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                    }`}>
+                      {selectedBooking.status === 'CONNFIRMED' ? 'CONFIRMED' : selectedBooking.status || 'PENDING'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Main Details */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                      <CalendarCheck className="w-4 h-4" /> Reservation Info
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-card border border-border/50 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Date</p>
+                        <p className="font-medium text-sm">{selectedBooking.booking_date ? new Date(selectedBooking.booking_date).toLocaleDateString() : selectedBooking.date || 'N/A'}</p>
+                      </div>
+                      <div className="bg-card border border-border/50 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Time Slot</p>
+                        <p className="font-medium text-sm flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-brand-mint" /> 
+                          {selectedBooking.start_time && selectedBooking.end_time 
+                            ? `${selectedBooking.start_time.slice(0, 5)} - ${selectedBooking.end_time.slice(0, 5)}` 
+                            : selectedBooking.time_slot || selectedBooking.time || 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                      <Eye className="w-4 h-4" /> Customer & Turf
+                    </h3>
+                    <div className="space-y-3 bg-card border border-border/50 rounded-xl p-4">
+                      <div className="flex justify-between items-center pb-3 border-b border-border/50">
+                        <span className="text-sm text-muted-foreground">Customer Name</span>
+                        <span className="font-medium">{selectedBooking.customer_name || 'N/A'}</span>
+                      </div>
+                      {selectedBooking.customer_email && (
+                        <div className="flex justify-between items-center pb-3 border-b border-border/50">
+                          <span className="text-sm text-muted-foreground">Email</span>
+                          <span className="font-medium">{selectedBooking.customer_email}</span>
+                        </div>
+                      )}
+                      {selectedBooking.customer_phone && (
+                        <div className="flex justify-between items-center pb-3 border-b border-border/50">
+                          <span className="text-sm text-muted-foreground">Phone</span>
+                          <span className="font-medium">{selectedBooking.customer_phone}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center pb-3 border-b border-border/50">
+                        <span className="text-sm text-muted-foreground">Turf Name</span>
+                        <span className="font-medium text-brand-mint">{selectedBooking.turf_name || 'N/A'}</span>
+                      </div>
+                      {selectedBooking.sport_name && (
+                        <div className="flex justify-between items-center pb-3 border-b border-border/50">
+                          <span className="text-sm text-muted-foreground">Sport</span>
+                          <span className="font-medium">{selectedBooking.sport_name}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Turf ID</span>
+                        <span className="font-mono text-xs">{selectedBooking.turf_id || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {selectedBooking.createdAt && (
+                    <div className="pt-2 text-center text-xs text-muted-foreground">
+                      Booking created on {new Date(selectedBooking.createdAt).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { UserSquare2, Mail, Phone, Briefcase, Save, Loader2 } from 'lucide-react'
-import axios from 'axios'
+import axios from '@/lib/axios'
 import { Toaster, toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
@@ -32,13 +32,17 @@ export default function OwnerProfilePage() {
     const fetchProfile = async () => {
       try {
         setLoading(true)
-        setTimeout(() => {
-          const profileData = {
-            name: 'Pranjal Soni',
-            email: 'pranjalsoni1901@gmail.com',
-            phone: '8085444188',
-            business_name: 'Super Turfs Pvt Ltd'
+        const token = localStorage.getItem('owner_token')
+        if (!token) return
+
+        const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + '/owner/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`
           }
+        })
+
+        if (response.data && response.data.success && response.data.data) {
+          const profileData = response.data.data
           setInitialData(profileData)
           reset({
             name: profileData.name || '',
@@ -47,8 +51,7 @@ export default function OwnerProfilePage() {
             business_name: profileData.business_name || '',
           })
           localStorage.setItem('owner_user', JSON.stringify(profileData))
-          setLoading(false)
-        }, 1000)
+        }
       } catch (err) {
         console.error("Failed to fetch profile", err)
         
@@ -75,20 +78,40 @@ export default function OwnerProfilePage() {
 
   const onSubmit = async (data: ProfileFormValues) => {
     try {
-      // Mock update
-      toast.success('Profile updated successfully! (Mocked)')
-      
-      const storedUser = localStorage.getItem('owner_user')
-      let updatedUser = { ...data }
-      if (storedUser) {
-        try {
-           updatedUser = { ...JSON.parse(storedUser), ...data }
-        } catch(e) {}
+      const token = localStorage.getItem('owner_token')
+      if (!token) {
+        toast.error('Authentication error. Please login again.')
+        return
       }
-      localStorage.setItem('owner_user', JSON.stringify(updatedUser))
-    } catch (err) {
+
+      const response = await axios.put(process.env.NEXT_PUBLIC_API_URL + '/owner/profile', {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        business_name: data.business_name
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (response.data && response.data.success !== false) {
+        toast.success('Profile updated successfully!')
+        
+        const storedUser = localStorage.getItem('owner_user')
+        let updatedUser = { ...data }
+        if (storedUser) {
+          try {
+             updatedUser = { ...JSON.parse(storedUser), ...data }
+          } catch(e) {}
+        }
+        localStorage.setItem('owner_user', JSON.stringify(updatedUser))
+      } else {
+        toast.error(response.data?.message || 'Failed to update profile')
+      }
+    } catch (err: any) {
       console.error(err)
-      toast.error('An error occurred while updating your profile.')
+      toast.error(err.response?.data?.message || 'An error occurred while updating your profile.')
     }
   }
 
@@ -128,7 +151,7 @@ export default function OwnerProfilePage() {
                       <UserSquare2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input 
                         id="name" 
-                        className={`pl-12 h-12 bg-black/20 border-white/10 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.name ? 'border-red-500/50' : ''}`}
+                        className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.name ? 'border-red-500/50' : ''}`}
                         {...register('name')}
                       />
                     </div>
@@ -141,7 +164,7 @@ export default function OwnerProfilePage() {
                       <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input 
                         id="business_name" 
-                        className={`pl-12 h-12 bg-black/20 border-white/10 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.business_name ? 'border-red-500/50' : ''}`}
+                        className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.business_name ? 'border-red-500/50' : ''}`}
                         {...register('business_name')}
                       />
                     </div>
@@ -156,7 +179,7 @@ export default function OwnerProfilePage() {
                         id="email"
                         type="email"
                         disabled // Usually emails can't be changed easily
-                        className={`pl-12 h-12 bg-black/20 border-white/10 opacity-70 cursor-not-allowed transition-all rounded-xl ${errors.email ? 'border-red-500/50' : ''}`}
+                        className={`pl-12 h-12 bg-background border-border/50 opacity-70 cursor-not-allowed transition-all rounded-xl ${errors.email ? 'border-red-500/50' : ''}`}
                         {...register('email')}
                       />
                     </div>
@@ -169,7 +192,7 @@ export default function OwnerProfilePage() {
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input 
                         id="phone" 
-                        className={`pl-12 h-12 bg-black/20 border-white/10 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.phone ? 'border-red-500/50' : ''}`}
+                        className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.phone ? 'border-red-500/50' : ''}`}
                         {...register('phone')}
                       />
                     </div>

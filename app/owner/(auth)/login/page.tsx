@@ -9,9 +9,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { Loader2, Mail, Lock } from 'lucide-react'
-import axios from 'axios'
+import axios from '@/lib/axios'
 import Link from 'next/link'
-
+import { GoogleLogin } from '@react-oauth/google'
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -22,15 +22,55 @@ type LoginFormValues = z.infer<typeof loginSchema>
 export default function OwnerLoginPage() {
   const router = useRouter()
   const [serverError, setServerError] = useState('')
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+
+  React.useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('owner_token') : null
+    if (token) {
+      router.push('/owner/dashboard')
+    }
+  }, [router])
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema)
   })
 
+  const handleGoogleLogin = async (credentialResponse: any) => {
+    if (!credentialResponse.credential) return;
+    setIsGoogleLoading(true)
+    setServerError('')
+    try {
+      const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + '/auth/owner/google', {
+        idToken: credentialResponse.credential
+      })
+
+      if (response.data && response.data.success) {
+        if (response.data.isNewUser) {
+          sessionStorage.setItem('pending_google_owner', JSON.stringify(response.data.data))
+          router.push('/owner/signup?method=google')
+        } else {
+          localStorage.setItem('owner_token', response.data.token || '')
+          localStorage.setItem('owner_user', JSON.stringify(response.data.data || {}))
+          router.push('/owner/dashboard')
+        }
+      } else {
+        setServerError(response.data.message || 'Google login failed')
+      }
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        setServerError(err.response.data.message)
+      } else {
+        setServerError('An unexpected error occurred during Google login.')
+      }
+    } finally {
+      setIsGoogleLoading(false)
+    }
+  }
+
   const onSubmit = async (data: LoginFormValues) => {
     setServerError('')
     try {
-      const response = await axios.post('https://turf-booking-1-mns7.onrender.com/auth/owner/login', {
+      const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + '/auth/owner/login', {
         email: data.email,
         password: data.password
       })
@@ -43,7 +83,7 @@ export default function OwnerLoginPage() {
       } else {
         setServerError(response.data.message || 'Login failed')
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.message) {
         setServerError(err.response.data.message)
@@ -54,8 +94,10 @@ export default function OwnerLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-brand-dark-green p-4 sm:p-8">
-      {/* Stunning Background Image with Gradient Overlay */}
+    <>
+      <style dangerouslySetInnerHTML={{ __html: 'body { background-color: #032221 !important; }' }} />
+      <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-brand-dark-green p-4 sm:p-8">
+        {/* Stunning Background Image with Gradient Overlay */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-40"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1518605368461-1ee7e54f7fb7?q=80&w=2000&auto=format&fit=crop')" }}
@@ -128,6 +170,9 @@ export default function OwnerLoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between ml-1">
                   <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase" htmlFor="password">Password</label>
+                  <Link href="/owner/forgot-password" className="text-xs text-brand-mint/80 hover:text-brand-mint font-medium transition-colors">
+                    Forgot Password?
+                  </Link>
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-brand-mint/70" />
@@ -161,15 +206,39 @@ export default function OwnerLoginPage() {
 
               <Button 
                 type="submit" 
-                disabled={isSubmitting}
+                disabled={isSubmitting || isGoogleLoading}
                 className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-mint to-brand-caribbean text-brand-dark-green hover:from-brand-caribbean hover:to-brand-mint border-none shadow-[0_0_30px_rgba(42,161,152,0.4)] hover:shadow-[0_0_40px_rgba(42,161,152,0.6)] transition-all rounded-2xl mt-6 group" 
               >
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Secure Login'}
               </Button>
               
+              <div className="relative my-6 flex items-center">
+                <div className="flex-grow border-t border-white/10"></div>
+                <span className="flex-shrink-0 mx-4 text-white/50 text-sm">OR</span>
+                <div className="flex-grow border-t border-white/10"></div>
+              </div>
+
+              <div className="flex justify-center w-full">
+                <div className="w-full relative">
+                  {isGoogleLoading && (
+                    <div className="absolute inset-0 z-10 bg-black/50 rounded flex items-center justify-center">
+                       <Loader2 className="w-5 h-5 animate-spin text-brand-mint" />
+                    </div>
+                  )}
+                  <GoogleLogin
+                    onSuccess={handleGoogleLogin}
+                    onError={() => setServerError('Google Login Failed')}
+                    width="100%"
+                    theme="filled_black"
+                    size="large"
+                    shape="circle"
+                  />
+                </div>
+              </div>
+              
               <div className="mt-4 text-center">
                 <p className="text-white/70 text-sm">
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{` `}
                   <Link href="/owner/signup" className="text-brand-mint font-semibold hover:underline">
                     Sign up
                   </Link>
@@ -178,7 +247,8 @@ export default function OwnerLoginPage() {
             </form>
           </CardContent>
         </Card>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+    </>
   )
 }

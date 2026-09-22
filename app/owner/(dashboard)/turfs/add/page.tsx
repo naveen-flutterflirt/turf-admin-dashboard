@@ -7,7 +7,7 @@ import { Toaster, toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 export default function AddTurfPage() {
   const router = useRouter()
@@ -27,9 +27,12 @@ export default function AddTurfPage() {
         // format times to HH:MM:SS
         opening_time: data.opening_time.length === 5 ? `${data.opening_time}:00` : data.opening_time,
         closing_time: data.closing_time.length === 5 ? `${data.closing_time}:00` : data.closing_time,
+        sports: data.sports,
+        amenities: data.amenities,
+        images: data.images
       }
 
-      const response = await axios.post('https://turf-booking-1-mns7.onrender.com/owner/turfs', payload, {
+      const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + '/owner/turfs', payload, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -40,7 +43,7 @@ export default function AddTurfPage() {
         
         // Redirect back to turfs list after short delay so toast is visible
         setTimeout(() => {
-          router.push('/owner/turfs')
+          window.location.href = '/owner/turfs'
         }, 1500)
       } else {
         toast.error(response.data?.message || "Failed to add turf.")
@@ -59,7 +62,7 @@ export default function AddTurfPage() {
       
       <div className="flex items-center gap-4">
         <Link href="/owner/turfs">
-          <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
+          <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent hover:text-accent-foreground">
             <ArrowLeft className="w-5 h-5" />
           </Button>
         </Link>

@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 export interface BroadcastNotification {
   id: string
@@ -20,7 +20,7 @@ export interface SendBroadcastPayload {
   customer_ids?: string[]
 }
 
-const API_BASE_URL = 'https://api.eatmeat.live' // Using localhost as requested
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL // Using localhost as requested
 
 export const marketingService = {
   getBroadcasts: async (): Promise<BroadcastNotification[]> => {

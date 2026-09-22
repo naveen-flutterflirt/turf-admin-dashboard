@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 export interface AppNotification {
   id?: string
@@ -17,7 +17,7 @@ export const notificationsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.get('https://api.eatmeat.live/notifications', {
+    const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + '/notifications', {
       headers: { Authorization: `Bearer ${token}` }
     })
 
@@ -31,7 +31,7 @@ export const notificationsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.patch(`https://api.eatmeat.live/notifications/${id}/read`, {}, {
+    const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${id}/read`, {}, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (response.data && response.data.success === false) {
@@ -43,7 +43,7 @@ export const notificationsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.patch('https://api.eatmeat.live/notifications/read-all', {}, {
+    const response = await axios.patch(process.env.NEXT_PUBLIC_API_URL + '/notifications/read-all', {}, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (response.data && response.data.success === false) {
@@ -55,7 +55,7 @@ export const notificationsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.delete(`https://api.eatmeat.live/notifications/${id}`, {
+    const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (response.data && response.data.success === false) {
@@ -67,7 +67,7 @@ export const notificationsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.delete('https://api.eatmeat.live/notifications/clear-all', {
+    const response = await axios.delete(process.env.NEXT_PUBLIC_API_URL + '/notifications/clear-all', {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (response.data && response.data.success === false) {

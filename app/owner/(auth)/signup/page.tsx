@@ -9,9 +9,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { Loader2, Mail, Lock, User, Briefcase, Phone } from 'lucide-react'
-import axios from 'axios'
+import axios from '@/lib/axios'
 import Link from 'next/link'
-
+import { useSearchParams } from 'next/navigation'
+import { GoogleLogin } from '@react-oauth/google'
+import { Suspense } from 'react'
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
@@ -22,32 +24,120 @@ const signupSchema = z.object({
 
 type SignupFormValues = z.infer<typeof signupSchema>
 
-export default function OwnerSignupPage() {
+function OwnerSignupForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [serverError, setServerError] = useState('')
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  
+  const [isGoogleSignup, setIsGoogleSignup] = useState(false)
+  const [googleIdToken, setGoogleIdToken] = useState('')
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignupFormValues>({
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema)
   })
+
+  React.useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('owner_token') : null
+    if (token) {
+      router.push('/owner/dashboard')
+    }
+
+    const method = searchParams.get('method')
+    if (method === 'google') {
+      const pendingDataStr = sessionStorage.getItem('pending_google_owner')
+      if (pendingDataStr) {
+        try {
+          const data = JSON.parse(pendingDataStr)
+          setIsGoogleSignup(true)
+          setGoogleIdToken(data.idToken || '')
+          
+          // Pre-fill form
+          reset({
+            email: data.email || '',
+            name: data.name || '',
+            business_name: '',
+            phone: '',
+            password: ''
+          })
+        } catch (e) {
+          console.error('Error parsing pending google data')
+        }
+      }
+    }
+  }, [router, searchParams, reset])
+
+  const handleGoogleLogin = async (credentialResponse: any) => {
+    if (!credentialResponse.credential) return;
+    setIsGoogleLoading(true)
+    setServerError('')
+    try {
+      const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + '/auth/owner/google', {
+        idToken: credentialResponse.credential
+      })
+
+      if (response.data && response.data.success) {
+        if (response.data.isNewUser) {
+          sessionStorage.setItem('pending_google_owner', JSON.stringify(response.data.data))
+          router.push('/owner/signup?method=google')
+        } else {
+          localStorage.setItem('owner_token', response.data.token || '')
+          localStorage.setItem('owner_user', JSON.stringify(response.data.data || {}))
+          router.push('/owner/dashboard')
+        }
+      } else {
+        setServerError(response.data.message || 'Google login failed')
+      }
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        setServerError(err.response.data.message)
+      } else {
+        setServerError('An unexpected error occurred during Google login.')
+      }
+    } finally {
+      setIsGoogleLoading(false)
+    }
+  }
 
   const onSubmit = async (data: SignupFormValues) => {
     setServerError('')
     try {
-      const response = await axios.post('https://turf-booking-1-mns7.onrender.com/auth/owner/signup', {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        business_name: data.business_name,
-        phone: data.phone
-      })
+      if (isGoogleSignup) {
+        const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + '/auth/owner/google-signup', {
+          idToken: googleIdToken,
+          name: data.name,
+          business_name: data.business_name,
+          phone: data.phone,
+          password: data.password
+        })
 
-      if (response.data && response.data.success) {
-        // Redirect to email verification page, optionally passing the email as a query param
-        router.push(`/owner/verify-email?email=${encodeURIComponent(data.email)}`)
+        if (response.data && response.data.success) {
+          // Clear session data
+          sessionStorage.removeItem('pending_google_owner')
+          
+          // Store token and user data directly, skipping email verification
+          localStorage.setItem('owner_token', response.data.token || '')
+          localStorage.setItem('owner_user', JSON.stringify(response.data.data || {}))
+          router.push('/owner/dashboard')
+        } else {
+          setServerError(response.data.message || 'Google signup failed')
+        }
       } else {
-        setServerError(response.data.message || 'Signup failed')
+        const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + '/auth/owner/signup', {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          business_name: data.business_name,
+          phone: data.phone
+        })
+
+        if (response.data && response.data.success) {
+          router.push(`/owner/verify-email?email=${encodeURIComponent(data.email)}`)
+        } else {
+          setServerError(response.data.message || 'Signup failed')
+        }
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.message) {
         setServerError(err.response.data.message)
@@ -58,8 +148,10 @@ export default function OwnerSignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-brand-dark-green p-4 sm:p-8">
-      {/* Stunning Background Image with Gradient Overlay */}
+    <>
+      <style dangerouslySetInnerHTML={{ __html: 'body { background-color: #032221 !important; }' }} />
+      <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-brand-dark-green p-4 sm:p-8">
+        {/* Stunning Background Video or Image with Gradient Overlay */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-40"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1518605368461-1ee7e54f7fb7?q=80&w=2000&auto=format&fit=crop')" }}
@@ -97,8 +189,14 @@ export default function OwnerSignupPage() {
           <div className="h-2 w-full bg-gradient-to-r from-brand-caribbean via-brand-mint to-brand-pistachio" />
           
           <CardHeader className="space-y-1 text-center pt-8 pb-4">
-            <h2 className="text-3xl font-bold text-white mt-2">Partner with Us</h2>
-            <p className="text-white/70 text-sm">Create your owner account to manage your turfs.</p>
+            <h2 className="text-3xl font-bold text-white mt-2">
+              {isGoogleSignup ? 'Complete Profile' : 'Partner with Us'}
+            </h2>
+            <p className="text-white/70 text-sm">
+              {isGoogleSignup 
+                ? 'Just a few more details to complete your account.'
+                : 'Create your owner account to manage your turfs.'}
+            </p>
           </CardHeader>
           
           <CardContent className="px-8 pb-10">
@@ -147,8 +245,9 @@ export default function OwnerSignupPage() {
                   <Input 
                     id="email" 
                     placeholder="owner@turf.com" 
-                    className={`pl-12 h-12 bg-black/40 border-white/10 text-white placeholder:text-white/30 focus:bg-black/60 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl text-base ${errors.email ? 'border-red-500/50' : ''}`}
+                    className={`pl-12 h-12 bg-black/40 border-white/10 text-white placeholder:text-white/30 focus:bg-black/60 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl text-base disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? 'border-red-500/50' : ''}`}
                     {...register('email')}
+                    disabled={isGoogleSignup}
                   />
                 </div>
                 {errors.email && (
@@ -212,11 +311,39 @@ export default function OwnerSignupPage() {
 
               <Button 
                 type="submit" 
-                disabled={isSubmitting}
+                disabled={isSubmitting || isGoogleLoading}
                 className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-mint to-brand-caribbean text-brand-dark-green hover:from-brand-caribbean hover:to-brand-mint border-none shadow-[0_0_30px_rgba(42,161,152,0.4)] hover:shadow-[0_0_40px_rgba(42,161,152,0.6)] transition-all rounded-2xl mt-8 group" 
               >
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Account'}
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (isGoogleSignup ? 'Complete Profile' : 'Create Account')}
               </Button>
+              
+              {!isGoogleSignup && (
+                <>
+                  <div className="relative my-6 flex items-center">
+                    <div className="flex-grow border-t border-white/10"></div>
+                    <span className="flex-shrink-0 mx-4 text-white/50 text-sm">OR</span>
+                    <div className="flex-grow border-t border-white/10"></div>
+                  </div>
+
+                  <div className="flex justify-center w-full">
+                    <div className="w-full relative">
+                      {isGoogleLoading && (
+                        <div className="absolute inset-0 z-10 bg-black/50 rounded flex items-center justify-center">
+                          <Loader2 className="w-5 h-5 animate-spin text-brand-mint" />
+                        </div>
+                      )}
+                      <GoogleLogin
+                        onSuccess={handleGoogleLogin}
+                        onError={() => setServerError('Google Login Failed')}
+                        width="100%"
+                        theme="filled_black"
+                        size="large"
+                        shape="circle"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="mt-4 text-center">
                 <p className="text-white/70 text-sm">
@@ -229,7 +356,20 @@ export default function OwnerSignupPage() {
             </form>
           </CardContent>
         </Card>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+    </>
+  )
+}
+
+export default function OwnerSignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-brand-dark-green p-4">
+        <Loader2 className="w-10 h-10 animate-spin text-brand-mint" />
+      </div>
+    }>
+      <OwnerSignupForm />
+    </Suspense>
   )
 }

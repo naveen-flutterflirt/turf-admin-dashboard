@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from '@/lib/axios'
 
 export interface Sport {
   id: string
@@ -35,7 +35,7 @@ export const turfsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.get('https://api.eatmeat.live/admin/turfs', {
+    const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + '/admin/turfs', {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -52,7 +52,7 @@ export const turfsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.patch(`https://api.eatmeat.live/admin/turfs/${id}/approve`, {}, {
+    const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/admin/turfs/${id}/approve`, {}, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -67,7 +67,7 @@ export const turfsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.patch(`https://api.eatmeat.live/admin/turfs/${id}/reject`, {}, {
+    const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/admin/turfs/${id}/reject`, {}, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -89,7 +89,7 @@ export const turfsService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.delete(`https://api.eatmeat.live/admin/turfs/${id}`, {
+    const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/admin/turfs/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
