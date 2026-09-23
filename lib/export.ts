@@ -14,7 +14,6 @@ export function exportToCsv<T extends Record<string, any>>(
     alert('No data available to export.');
     return;
   }
-
   // Determine headers
   const cols = headers || Object.keys(data[0]).map(k => ({ key: k, label: k }));
   
