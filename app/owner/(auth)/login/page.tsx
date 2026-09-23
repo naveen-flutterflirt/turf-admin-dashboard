@@ -219,7 +219,7 @@ export default function OwnerLoginPage() {
               </div>
 
               <div className="flex justify-center w-full">
-                <div className="w-full relative">
+                <div className="relative flex justify-center">
                   {isGoogleLoading && (
                     <div className="absolute inset-0 z-10 bg-black/50 rounded flex items-center justify-center">
                        <Loader2 className="w-5 h-5 animate-spin text-brand-mint" />
@@ -228,7 +228,6 @@ export default function OwnerLoginPage() {
                   <GoogleLogin
                     onSuccess={handleGoogleLogin}
                     onError={() => setServerError('Google Login Failed')}
-                    width="100%"
                     theme="filled_black"
                     size="large"
                     shape="circle"
