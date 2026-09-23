@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Image as ImageIcon, Plus, Trash2, Calendar, CheckCircle2, Loader2 } from 'lucide-react'
 import { BannerUploadModal } from '@/components/banners/banner-upload-modal'
+import { Modal } from '@/components/ui/modal'
 import { bannersService, Banner } from '@/services/banners'
 
 const containerVariants = {
@@ -23,16 +24,20 @@ export default function AdminBannersPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
-  const handleToggleStatus = async (id: string, currentStatus: string) => {
+  const handleToggleStatus = async (rawId: any, currentStatus: string) => {
+    const id = typeof rawId === 'object' && rawId !== null ? ((rawId as any).$oid || (rawId as any).toString()) : String(rawId);
     const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
     setUpdatingId(id)
     try {
       await bannersService.updateBannerStatus(id, newStatus)
       // Optimistically update locally
-      setBanners(prev => prev.map(b => (b.id || (b as any)._id) === id ? { ...b, status: newStatus } : b))
+      setBanners(prev => prev.map(b => {
+        const bId = typeof b._id === 'object' && b._id !== null ? (b._id as any).$oid : (b.id || b._id || b.promo_id);
+        return String(bId) === String(id) ? { ...b, status: newStatus } : b;
+      }))
     } catch (error: any) {
       console.error('Failed to update status:', error)
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to update banner status.'
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to update banner status.'
       alert(`Backend Error: ${errorMsg}`)
     } finally {
       setUpdatingId(null)
@@ -65,14 +70,30 @@ export default function AdminBannersPage() {
     }
   }
 
-  const handleDeleteBanner = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this banner?')) return
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [selectedBannerToDelete, setSelectedBannerToDelete] = useState<Banner | null>(null)
+
+  const executeDeleteBanner = async () => {
+    if (!selectedBannerToDelete) return;
+    const rawId = selectedBannerToDelete.id || selectedBannerToDelete._id || selectedBannerToDelete.promo_id;
+    const id = typeof rawId === 'object' && rawId !== null ? ((rawId as any).$oid || (rawId as any).toString()) : String(rawId);
+    
+    setIsDeletingId(id)
     try {
       await bannersService.deleteBanner(id)
-      setBanners(prev => prev.filter(b => b.id !== id))
-    } catch (error) {
+      setBanners(prev => prev.filter(b => {
+        const bId = typeof b._id === 'object' && b._id !== null ? (b._id as any).$oid : (b.id || b._id || b.promo_id);
+        return String(bId) !== String(id);
+      }))
+      setIsDeleteModalOpen(false)
+      setSelectedBannerToDelete(null)
+    } catch (error: any) {
       console.error('Failed to delete banner:', error)
-      alert('Failed to delete banner.')
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to delete banner.'
+      alert(`Backend Error: ${errorMsg}`)
+    } finally {
+      setIsDeletingId(null)
     }
   }
 
@@ -135,22 +156,21 @@ export default function AdminBannersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {banners.map((banner) => (
-                    <motion.tr key={banner.id} variants={itemVariants} className="hover:bg-muted/30 transition-colors">
+                  {banners.map((banner, index) => (
+                    <motion.tr key={typeof banner._id === 'object' ? (banner._id as any).$oid : (banner.id || banner._id || banner.promo_id || index)} variants={itemVariants} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4">
                         <div className="w-32 aspect-[16/9] rounded-md overflow-hidden bg-black border border-white/10">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={banner.image_url} alt="Banner Preview" className="w-full h-full object-cover" />
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <button
-                            onClick={() => handleToggleStatus(banner.id || (banner as any)._id, banner.status || 'ACTIVE')}
-                            disabled={updatingId === (banner.id || (banner as any)._id)}
+                            onClick={() => handleToggleStatus(banner.id || banner._id || banner.promo_id, banner.status || 'ACTIVE')}
+                            disabled={updatingId === (typeof banner._id === 'object' ? (banner._id as any).$oid : (banner.id || banner._id || banner.promo_id))}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                               (banner.status || 'ACTIVE') === 'ACTIVE' ? 'bg-brand-mint' : 'bg-white/20'
-                            } ${updatingId === (banner.id || (banner as any)._id) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            } ${updatingId === (typeof banner._id === 'object' ? (banner._id as any).$oid : (banner.id || banner._id || banner.promo_id)) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                           >
                             <span
                               className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
@@ -163,7 +183,7 @@ export default function AdminBannersPage() {
                               ? 'bg-brand-mint/10 text-brand-mint border-brand-mint/20' 
                               : 'bg-white/5 text-white/50 border-white/10'
                           }`}>
-                            {updatingId === (banner.id || (banner as any)._id) ? (
+                            {updatingId === (typeof banner._id === 'object' ? (banner._id as any).$oid : (banner.id || banner._id || banner.promo_id)) ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
                             ) : (banner.status || 'ACTIVE') === 'ACTIVE' ? (
                               <CheckCircle2 className="w-3 h-3" />
@@ -181,8 +201,21 @@ export default function AdminBannersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteBanner(banner.id || (banner as any)._id)} className="text-red-400 hover:text-red-300 hover:bg-red-400/10">
-                          <Trash2 className="w-4 h-4" />
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          disabled={isDeletingId === (typeof banner._id === 'object' ? (banner._id as any).$oid : (banner.id || banner._id || banner.promo_id))}
+                          onClick={() => {
+                            setSelectedBannerToDelete(banner)
+                            setIsDeleteModalOpen(true)
+                          }} 
+                          className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                        >
+                          {isDeletingId === (typeof banner._id === 'object' ? (banner._id as any).$oid : (banner.id || banner._id || banner.promo_id)) ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
                         </Button>
                       </td>
                     </motion.tr>
@@ -199,6 +232,24 @@ export default function AdminBannersPage() {
         onClose={() => setIsModalOpen(false)} 
         onSave={handleSaveBanner}
       />
+
+      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Delete Banner">
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">Are you sure you want to delete this banner? This action cannot be undone.</p>
+          <div className="pt-2 flex justify-end gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
+            <Button 
+              type="button" 
+              size="sm"
+              className="bg-red-500 hover:bg-red-600 text-white"
+              disabled={!!isDeletingId}
+              onClick={executeDeleteBanner}
+            >
+              {isDeletingId ? 'Deleting...' : 'Delete'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

@@ -170,8 +170,8 @@ export default function DownloadPage() {
               <p className="text-white/60">Follow these simple steps to install the app on your Android device.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-              <div className="hidden md:block absolute top-12 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-brand-mint/20 to-transparent" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative max-w-4xl mx-auto">
+              <div className="hidden md:block absolute top-12 left-[25%] right-[25%] h-px bg-gradient-to-r from-transparent via-brand-mint/20 to-transparent" />
               
               <div className="flex flex-col items-center text-center">
                 <div className="w-24 h-24 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 text-brand-mint shadow-lg">
@@ -180,20 +180,12 @@ export default function DownloadPage() {
                 <h3 className="text-xl font-bold mb-2">1. Download APK</h3>
                 <p className="text-white/50 text-sm max-w-[200px]">Click the download button above to get the optimized file.</p>
               </div>
-              
-              <div className="flex flex-col items-center text-center">
-                <div className="w-24 h-24 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 text-brand-mint shadow-lg">
-                  <Settings className="w-10 h-10" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">2. Allow Unknown Sources</h3>
-                <p className="text-white/50 text-sm max-w-[200px]">If prompted, go to Settings and allow installations from your browser.</p>
-              </div>
 
               <div className="flex flex-col items-center text-center">
                 <div className="w-24 h-24 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 text-brand-mint shadow-lg">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">3. Install & Play</h3>
+                <h3 className="text-xl font-bold mb-2">2. Install & Play</h3>
                 <p className="text-white/50 text-sm max-w-[200px]">Open the downloaded file, hit install, and start booking turfs!</p>
               </div>
             </div>

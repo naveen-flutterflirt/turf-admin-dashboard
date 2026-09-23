@@ -1,7 +1,9 @@
 import axios from '@/lib/axios'
 
 export interface Banner {
-  id: string
+  id?: string
+  _id?: string
+  promo_id?: string
   image_url: string
   status: string
   created_at: string
@@ -64,9 +66,16 @@ export const bannersService = {
       const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
       if (!token) throw new Error("No authorization token found")
 
+      if (!id || id === 'undefined') {
+        throw new Error("Cannot update status: Banner ID is undefined or missing!")
+      }
+
+      console.log(`Sending PATCH to: ${API_URL}/admin/promos/${id}/status with payload:`, { status })
+
       const response = await axios.patch(`${API_URL}/admin/promos/${id}/status`, { status }, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       })
 
