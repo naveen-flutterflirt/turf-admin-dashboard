@@ -339,6 +339,7 @@ function OwnerSignupForm() {
                         theme="filled_black"
                         size="large"
                         shape="circle"
+                        text="signup_with"
                       />
                     </div>
                   </div>
