@@ -2,7 +2,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Users, UserSquare2, TentTree, CalendarCheck, CreditCard, PieChart, Dumbbell, Settings, LogOut, Clock, MessageSquare, Megaphone, Image as ImageIcon } from 'lucide-react'
+import { LayoutDashboard, Users, UserSquare2, TentTree, CalendarCheck, CreditCard, PieChart, Dumbbell, LogOut, MessageSquare, Megaphone, Image as ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 

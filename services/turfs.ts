@@ -79,7 +79,7 @@ export const turfsService = {
   },
 
   // Stub for edit/update until provided
-  updateTurf: async (_id: string, _updates: Partial<Turf>): Promise<Turf> => {
+  updateTurf: async (id: string, updates: Partial<Turf>): Promise<Turf> => {
     console.warn("Update API not yet implemented")
     await new Promise(resolve => setTimeout(resolve, 600))
     return {} as Turf

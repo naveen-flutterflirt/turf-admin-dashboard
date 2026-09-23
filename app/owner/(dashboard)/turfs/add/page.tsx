@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { TurfForm, TurfFormValues } from '@/components/turfs/turf-form'
 import { Toaster, toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
@@ -10,7 +9,7 @@ import Link from 'next/link'
 import axios from '@/lib/axios'
 
 export default function AddTurfPage() {
-  const router = useRouter()
+  
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (data: TurfFormValues) => {

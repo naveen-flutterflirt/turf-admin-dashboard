@@ -48,7 +48,7 @@ export default function OwnerTurfsPage() {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
    
   const [selectedTurf, setSelectedTurf] = useState<any>(null)
-  const [imageError, setImageError] = useState(false)
+  const [, setImageError] = useState(false)
 
   const fetchTurfs = async () => {
     try {

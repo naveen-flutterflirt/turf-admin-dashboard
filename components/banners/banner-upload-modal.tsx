@@ -198,7 +198,7 @@ export function BannerUploadModal({ isOpen, onClose, onSave }: BannerUploadModal
                         aspect={16 / 9}
                         className="max-h-[400px]"
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        
                         <img
                           ref={imgRef}
                           src={imgSrc}

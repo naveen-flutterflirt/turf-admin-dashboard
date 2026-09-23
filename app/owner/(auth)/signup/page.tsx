@@ -60,8 +60,8 @@ function OwnerSignupForm() {
             phone: '',
             password: ''
           })
-        } catch (e) {
-          console.error('Error parsing pending google data')
+        } catch (error) {
+          console.error('Error parsing pending google data', error)
         }
       }
     }

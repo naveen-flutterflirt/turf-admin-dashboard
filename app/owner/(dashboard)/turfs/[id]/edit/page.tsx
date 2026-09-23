@@ -10,7 +10,7 @@ import Link from 'next/link'
 import axios from '@/lib/axios'
 
 export default function EditTurfPage() {
-  const router = useRouter()
+  
   const params = useParams()
   const turfId = params.id as string
 
@@ -63,7 +63,7 @@ export default function EditTurfPage() {
           } else {
             try {
               parsedImages = JSON.parse(parsedImages);
-            } catch (e) {
+            } catch (error) {
               parsedImages = [parsedImages];
             }
           }

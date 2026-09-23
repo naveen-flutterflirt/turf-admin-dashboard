@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 import { motion, Variants, AnimatePresence } from 'framer-motion'
 import { 
-  Download, Smartphone, MapPin, Users, CalendarDays, 
+  Download, Smartphone, Users, CalendarDays, 
   MessageCircle, LayoutDashboard, ChevronRight, CheckCircle2,
   Trophy, Shield, Map, Activity, Menu, X
 } from 'lucide-react'
@@ -54,11 +54,11 @@ export default function LandingPage() {
             <Link href="/owner/login" className="text-sm font-medium hover:text-brand-mint transition-colors">
               Log In
             </Link>
-            <Link href="/download">
+            <a href="https://play.google.com/store/apps/details?id=com.turfcut.app" target="_blank" rel="noopener noreferrer">
               <Button className="bg-brand-mint text-brand-dark-green hover:bg-brand-mint/90 font-bold rounded-full px-6 shadow-[0_0_15px_rgba(42,161,152,0.3)] transition-all">
                 <Download className="w-4 h-4 mr-2" /> Download App
               </Button>
-            </Link>
+            </a>
           </div>
 
           {/* Mobile Nav Toggle */}
@@ -83,11 +83,11 @@ export default function LandingPage() {
               <a href="#" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-brand-mint transition-colors">Community</a>
               <Link href="/owner/signup" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-brand-mint transition-colors">For Owners</Link>
               <Link href="/owner/login" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-brand-mint transition-colors">Owner Login</Link>
-              <Link href="/download" onClick={() => setIsMobileMenuOpen(false)}>
+              <a href="https://play.google.com/store/apps/details?id=com.turfcut.app" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button className="mt-4 bg-brand-mint text-brand-dark-green hover:bg-brand-mint/90 font-bold rounded-full px-8 py-6 text-lg shadow-[0_0_20px_rgba(42,161,152,0.4)] transition-all">
                   <Download className="w-5 h-5 mr-2" /> Download App
                 </Button>
-              </Link>
+              </a>
             </motion.div>
           )}
         </AnimatePresence>
@@ -136,12 +136,12 @@ export default function LandingPage() {
               initial="hidden" animate="visible" variants={fadeInUp} transition={{ delay: 0.4 }}
               className="flex flex-row gap-3 sm:gap-4 w-full max-w-md"
             >
-              <Link href="/download" className="flex-1">
+              <a href="https://play.google.com/store/apps/details?id=com.turfcut.app" target="_blank" rel="noopener noreferrer" className="flex-1">
                 <Button className="w-full h-14 sm:h-16 text-sm sm:text-lg font-bold bg-white text-black hover:bg-white/90 rounded-2xl group transition-all whitespace-nowrap px-2 sm:px-6">
                   <Smartphone className="mr-1 sm:mr-2 w-4 h-4 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
                   Download App
                 </Button>
-              </Link>
+              </a>
               <Button className="flex-1 h-14 sm:h-16 text-sm sm:text-lg font-bold bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 rounded-2xl transition-all whitespace-nowrap px-2 sm:px-6">
                 Explore Turfs
               </Button>
@@ -293,12 +293,12 @@ export default function LandingPage() {
                 <Download className="mr-1 sm:mr-2 w-4 h-4 sm:w-6 sm:h-6 group-hover:-translate-y-1 transition-transform" />
                 iOS App
               </Button>
-              <Link href="/download" className="flex-1 sm:flex-none">
+              <a href="https://play.google.com/store/apps/details?id=com.turfcut.app" target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none">
                 <Button className="w-full h-14 sm:h-16 px-2 sm:px-10 text-xs sm:text-lg font-bold bg-brand-mint text-brand-dark-green hover:bg-brand-mint/90 rounded-2xl group shadow-[0_0_30px_rgba(42,161,152,0.3)] transition-all whitespace-nowrap">
                   <Download className="mr-1 sm:mr-2 w-4 h-4 sm:w-6 sm:h-6 group-hover:-translate-y-1 transition-transform" />
                   Android App
                 </Button>
-              </Link>
+              </a>
             </motion.div>
           </div>
         </section>

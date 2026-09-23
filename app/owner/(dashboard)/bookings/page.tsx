@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { CalendarCheck, Eye, Download, X, Clock, IndianRupee, MapPin } from 'lucide-react'
+import { CalendarCheck, Eye, Download, X, Clock, IndianRupee } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import axios from '@/lib/axios'
 import { Toaster, toast } from 'sonner'

@@ -19,7 +19,7 @@ export function OwnerHeader({ onMenuClick }: { onMenuClick?: () => void }) {
            
           setOwnerInitial(parsed.name.charAt(0).toUpperCase())
         }
-      } catch (e) {
+      } catch {
         console.error("Could not parse owner user data")
       }
     }

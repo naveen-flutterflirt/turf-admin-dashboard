@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { motion, Variants } from 'framer-motion'
-import { Download, Smartphone, Cpu, ShieldCheck, ChevronLeft, Settings, CheckCircle2, DownloadCloud } from 'lucide-react'
+import { Download, Cpu, ShieldCheck, ChevronLeft, CheckCircle2, DownloadCloud } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 

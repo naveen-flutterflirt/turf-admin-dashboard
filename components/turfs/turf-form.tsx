@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { MapPin, TentTree, IndianRupee, Loader2, Image as ImageIcon, Plus, Trash2, Clock, AlignLeft, Building2, Map, MapPinned, Trophy, CheckSquare, UploadCloud, X } from 'lucide-react'
-import { Toaster, toast } from 'sonner'
+import { toast } from 'sonner'
 import axios from 'axios'
 
 const turfSchema = z.object({

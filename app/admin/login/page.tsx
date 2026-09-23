@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardHeader,  } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
-import { Loader2, Mail, Lock, ShieldCheck } from 'lucide-react'
+import { Loader2, Mail, Lock } from 'lucide-react'
 import axios from '@/lib/axios'
 
 const loginSchema = z.object({
