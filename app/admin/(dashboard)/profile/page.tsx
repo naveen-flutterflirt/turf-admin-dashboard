@@ -17,8 +17,6 @@ export default function ProfilePage() {
     if (userStr) {
       try {
         const user = JSON.parse(userStr)
-         
-         
         setProfileData({
           name: user.name || 'Admin User',
           email: user.email || 'admin@turf.com',

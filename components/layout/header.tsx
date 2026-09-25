@@ -7,6 +7,7 @@ import { ThemeToggle } from '../theme-toggle'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { notificationsService, AppNotification } from '@/services/notifications'
+import { turfsService } from '@/services/turfs'
 
 export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const pathname = usePathname()
@@ -18,7 +19,39 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     queryFn: notificationsService.getNotifications 
   })
 
-  const notifications = data || []
+  const isAdmin = pathname.startsWith('/admin')
+  const { data: adminTurfs } = useQuery({
+    queryKey: ['turfs'],
+    queryFn: turfsService.getTurfs,
+    enabled: isAdmin
+  })
+
+  let rawNotifications = data || []
+
+  // Industry Standard Data Sanitization: 
+  // Automatically clean up stale 'Pending' notifications if the turf has already been processed (approved/rejected)
+  if (isAdmin && adminTurfs) {
+    rawNotifications = rawNotifications.map(notif => {
+      if (notif.title === 'New Turf Pending Approval') {
+        const turfName = notif.message.split(' is waiting')[0]
+        const turf = adminTurfs.find((t: any) => t.name === turfName)
+        if (turf && (turf.status === 'APPROVED' || turf.status === 'REJECTED' || turf.status === 'ACTIVE' || turf.status === 'INACTIVE')) {
+          const statusStr = (turf.status === 'ACTIVE' || turf.status === 'APPROVED') ? 'approved' : 'rejected'
+          return {
+            ...notif,
+            title: statusStr === 'approved' ? 'Turf Approved' : 'Turf Rejected',
+            message: `${turf.name} has been ${statusStr} successfully.`,
+            isRead: true,
+            is_read: true,
+            type: statusStr === 'approved' ? 'SUCCESS' : 'WARNING'
+          }
+        }
+      }
+      return notif
+    })
+  }
+
+  const notifications = rawNotifications;
   const unreadCount = notifications.filter(n => {
     const isRead = n.isRead || n.is_read || false
     return !isRead

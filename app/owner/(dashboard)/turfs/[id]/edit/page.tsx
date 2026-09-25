@@ -86,7 +86,7 @@ export default function EditTurfPage() {
 
         const uniqueImages = Array.from(new Set(formattedImages.map((img: any) => img.url)))
           .map(url => formattedImages.find((img: any) => img.url === url));
-
+          
         let parsedSports = data.sports || [];
         if (typeof parsedSports === 'string') {
           if (parsedSports.includes(',')) {

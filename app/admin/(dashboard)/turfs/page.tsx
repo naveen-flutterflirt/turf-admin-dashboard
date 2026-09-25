@@ -41,9 +41,30 @@ export default function TurfsPage() {
   })
 
   const toggleStatusMutation = useMutation({
-    mutationFn: (data: { id: string, action: 'approve' | 'reject' }) =>
+    mutationFn: (data: { id: string, action: 'approve' | 'reject', turfName?: string }) =>
       data.action === 'approve' ? turfsService.approveTurf(data.id) : turfsService.rejectTurf(data.id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['turfs'] })
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['turfs'] })
+      
+      // Optimistically update notifications to reflect the new status
+      queryClient.setQueryData(['notifications'], (oldData: any) => {
+        if (!oldData) return oldData;
+        return oldData.map((notif: any) => {
+          if (notif.title === 'New Turf Pending Approval' && variables.turfName && notif.message.includes(variables.turfName)) {
+            return {
+              ...notif,
+              title: variables.action === 'approve' ? 'Turf Approved' : 'Turf Rejected',
+              message: `${variables.turfName} has been ${variables.action === 'approve' ? 'approved' : 'rejected'} successfully.`,
+              isRead: true,
+              is_read: true
+            }
+          }
+          return notif;
+        })
+      });
+      // Invalidate to fetch fresh data if backend supports it
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    }
   })
 
   // Derived state for filtering and pagination
@@ -260,7 +281,7 @@ export default function TurfsPage() {
                                     variant="outline"
                                     size="sm"
                                     className="text-red-500 hover:text-white hover:bg-red-500 border-red-500/20"
-                                    onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'reject' })}
+                                    onClick={() => toggleStatusMutation.mutate({ id: turf.id, turfName: turf.name, action: 'reject' })}
                                     disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                                   >
                                     <XCircle className="w-4 h-4 mr-1.5" /> Reject
@@ -268,7 +289,7 @@ export default function TurfsPage() {
                                   <Button
                                     size="sm"
                                     className="bg-brand-mint text-brand-dark-green hover:bg-brand-caribbean"
-                                    onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'approve' })}
+                                    onClick={() => toggleStatusMutation.mutate({ id: turf.id, turfName: turf.name, action: 'approve' })}
                                     disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                                   >
                                     <CheckCircle className="w-4 h-4 mr-1.5" /> Approve
@@ -282,7 +303,7 @@ export default function TurfsPage() {
                                     variant="outline"
                                     size="sm"
                                     className="text-red-500 hover:text-white hover:bg-red-500 border-red-500/20"
-                                    onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'reject' })}
+                                    onClick={() => toggleStatusMutation.mutate({ id: turf.id, turfName: turf.name, action: 'reject' })}
                                     disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                                   >
                                     <XCircle className="w-4 h-4 mr-1.5" /> Reject
@@ -306,7 +327,7 @@ export default function TurfsPage() {
                                   <Button
                                     size="sm"
                                     className="bg-brand-mint text-brand-dark-green hover:bg-brand-caribbean"
-                                    onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'approve' })}
+                                    onClick={() => toggleStatusMutation.mutate({ id: turf.id, turfName: turf.name, action: 'approve' })}
                                     disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                                   >
                                     <CheckCircle className="w-4 h-4 mr-1.5" /> Approve
@@ -386,14 +407,14 @@ export default function TurfsPage() {
                               <Button
                                 variant="outline"
                                 className="flex-1 min-w-[100px] text-red-500 hover:text-white hover:bg-red-500 border-red-500/20"
-                                onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'reject' })}
+                                onClick={() => toggleStatusMutation.mutate({ id: turf.id, turfName: turf.name, action: 'reject' })}
                                 disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                               >
                                 <XCircle className="w-4 h-4 mr-1.5" /> Reject
                               </Button>
                               <Button
                                 className="flex-1 min-w-[100px] bg-brand-mint text-brand-dark-green hover:bg-brand-caribbean"
-                                onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'approve' })}
+                                onClick={() => toggleStatusMutation.mutate({ id: turf.id, turfName: turf.name, action: 'approve' })}
                                 disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                               >
                                 <CheckCircle className="w-4 h-4 mr-1.5" /> Approve
@@ -406,7 +427,7 @@ export default function TurfsPage() {
                               <Button
                                 variant="outline"
                                 className="flex-1 min-w-[100px] text-red-500 hover:text-white hover:bg-red-500 border-red-500/20"
-                                onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'reject' })}
+                                onClick={() => toggleStatusMutation.mutate({ id: turf.id, turfName: turf.name, action: 'reject' })}
                                 disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                               >
                                 <XCircle className="w-4 h-4 mr-1.5" /> Reject
@@ -428,7 +449,7 @@ export default function TurfsPage() {
                             <>
                               <Button
                                 className="flex-1 min-w-[100px] bg-brand-mint text-brand-dark-green hover:bg-brand-caribbean"
-                                onClick={() => toggleStatusMutation.mutate({ id: turf.id, action: 'approve' })}
+                                onClick={() => toggleStatusMutation.mutate({ id: turf.id, turfName: turf.name, action: 'approve' })}
                                 disabled={toggleStatusMutation.isPending && toggleStatusMutation.variables?.id === turf.id}
                               >
                                 <CheckCircle className="w-4 h-4 mr-1.5" /> Approve

@@ -108,17 +108,17 @@ export default function AdminBannersPage() {
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-brand-dark-green dark:text-white flex items-center gap-3">
             <div className="p-2 bg-brand-mint/10 rounded-xl border border-brand-mint/20">
               <ImageIcon className="w-6 h-6 text-brand-mint" />
             </div>
             Banner Management
           </h1>
-          <p className="text-white/60 mt-1">
+          <p className="text-gray-600 dark:text-white/60 mt-1">
             Upload and manage promotional banners for the customer application.
           </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="bg-brand-mint text-black hover:bg-brand-mint/90 flex items-center gap-2 font-bold px-6 py-5 rounded-xl shadow-[0_0_20px_rgba(3,233,165,0.2)]">
+        <Button onClick={() => setIsModalOpen(true)} className="bg-brand-mint text-brand-dark-green hover:bg-brand-mint/90 flex items-center gap-2 font-bold px-6 py-5 rounded-xl shadow-[0_0_20px_rgba(3,233,165,0.2)]">
           <Plus className="w-5 h-5" />
           Add New Banner
         </Button>
@@ -140,7 +140,7 @@ export default function AdminBannersPage() {
             <div className="h-64 flex flex-col items-center justify-center text-muted-foreground">
               <ImageIcon className="w-12 h-12 mb-4 opacity-20" />
               <p>No banners uploaded yet.</p>
-              <Button onClick={() => setIsModalOpen(true)} variant="outline" className="mt-4 border-white/10">
+              <Button onClick={() => setIsModalOpen(true)} variant="outline" className="mt-4 border-border">
                 Upload First Banner
               </Button>
             </div>
@@ -169,19 +169,19 @@ export default function AdminBannersPage() {
                             onClick={() => handleToggleStatus(banner.id || banner._id || banner.promo_id, banner.status || 'ACTIVE')}
                             disabled={updatingId === (typeof banner._id === 'object' ? (banner._id as any).$oid : (banner.id || banner._id || banner.promo_id))}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                              (banner.status || 'ACTIVE') === 'ACTIVE' ? 'bg-brand-mint' : 'bg-white/20'
+                              (banner.status || 'ACTIVE') === 'ACTIVE' ? 'bg-brand-mint' : 'bg-secondary'
                             } ${updatingId === (typeof banner._id === 'object' ? (banner._id as any).$oid : (banner.id || banner._id || banner.promo_id)) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                           >
                             <span
                               className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
-                                (banner.status || 'ACTIVE') === 'ACTIVE' ? 'translate-x-6 bg-black' : 'translate-x-1 bg-white'
+                                (banner.status || 'ACTIVE') === 'ACTIVE' ? 'translate-x-6 bg-brand-dark-green' : 'translate-x-1 bg-muted-foreground'
                               }`}
                             />
                           </button>
                           <span className={`text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1 w-fit transition-colors ${
                             (banner.status || 'ACTIVE') === 'ACTIVE' 
                               ? 'bg-brand-mint/10 text-brand-mint border-brand-mint/20' 
-                              : 'bg-white/5 text-white/50 border-white/10'
+                              : 'bg-secondary/50 text-muted-foreground border-border'
                           }`}>
                             {updatingId === (typeof banner._id === 'object' ? (banner._id as any).$oid : (banner.id || banner._id || banner.promo_id)) ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
@@ -194,7 +194,7 @@ export default function AdminBannersPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-white/70">
+                      <td className="px-6 py-4 text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4" />
                           {banner.created_at ? new Date(banner.created_at).toLocaleDateString() : 'N/A'}

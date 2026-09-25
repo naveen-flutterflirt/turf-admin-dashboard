@@ -2,45 +2,54 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Users, UserSquare2, TentTree, CalendarCheck, CreditCard, PieChart, Dumbbell, LogOut, MessageSquare, Megaphone, Image as ImageIcon, Settings } from 'lucide-react'
+import { LayoutDashboard, TentTree, CalendarCheck, Users, MessageSquareText, UserSquare2, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
+import { customerAuthService } from '@/services/customer-auth'
 
 const navItems = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'Customers', href: '/admin/users', icon: Users },
-  { name: 'Owners', href: '/admin/owners', icon: UserSquare2 },
-  { name: 'Turfs', href: '/admin/turfs', icon: TentTree },
-  { name: 'Bookings', href: '/admin/bookings', icon: CalendarCheck },
-  { name: 'Payments', href: '/admin/payments', icon: CreditCard },
-  { name: 'Reports', href: '/admin/reports', icon: PieChart },
-  { name: 'Sports', href: '/admin/sports', icon: Dumbbell },
-  { name: 'Queries', href: '/admin/queries', icon: MessageSquare },
-  { name: 'Broadcasts', href: '/admin/broadcasts', icon: Megaphone },
-  { name: 'Banners', href: '/admin/banners', icon: ImageIcon },
-  { name: 'Settings', href: '/admin/settings', icon: Settings },
+  { name: 'Dashboard', href: '/customer/dashboard', icon: LayoutDashboard },
+  { name: 'Turf', href: '/customer/turf', icon: TentTree },
+  { name: 'My Booking', href: '/customer/bookings', icon: CalendarCheck },
+  { name: 'Community', href: '/customer/community', icon: Users },
+  { name: 'Query', href: '/customer/query', icon: MessageSquareText },
+  { name: 'Profile', href: '/customer/profile', icon: UserSquare2 },
 ]
 
-export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate?: () => void, hideCollapseButton?: boolean }) {
+export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { onNavigate?: () => void, hideCollapseButton?: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
   const [isCollapsed, setIsCollapsed] = React.useState(false)
+  const [customerInitial, setCustomerInitial] = React.useState('C')
+
+  React.useEffect(() => {
+    const customerData = localStorage.getItem('customer_user')
+    if (customerData) {
+      try {
+        const parsed = JSON.parse(customerData)
+        if (parsed.name) {
+          setCustomerInitial(parsed.name.charAt(0).toUpperCase())
+        }
+      } catch {
+        console.error("Could not parse customer user data")
+      }
+    }
+  }, [])
 
   const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (onNavigate) {
       e.preventDefault()
-      onNavigate() // Close the sidebar first to trigger smooth animation
+      onNavigate()
       setTimeout(() => {
         router.push(href)
-      }, 400) // Ensure the exit animation fully completes before navigating
+      }, 400)
     }
   }
 
-  const handleLogout = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleLogout = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
-    localStorage.removeItem('admin_token')
-    localStorage.removeItem('admin_user')
-    router.push('/admin/login')
+    await customerAuthService.logout()
+    window.location.href = '/customer/turf'
   }
 
   return (
@@ -75,8 +84,9 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
       <div className="flex items-center justify-center h-16 border-b border-border py-2 overflow-hidden">
         <motion.img 
           src="/Logo.png" 
-          alt="Turf Admin Logo" 
-          className="h-full object-contain" 
+          alt="TurfPlay Logo" 
+          className="h-full object-contain cursor-pointer" 
+          onClick={() => router.push('/')}
           animate={{ 
             opacity: isCollapsed ? 0 : 1,
             scale: isCollapsed ? 0.5 : 1,
@@ -88,9 +98,10 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
           <motion.div 
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-8 h-8 rounded-lg bg-brand-mint/20 flex items-center justify-center text-brand-dark-green font-bold text-xl"
+            className="w-8 h-8 rounded-lg bg-brand-caribbean/20 flex items-center justify-center text-brand-dark-green font-bold text-xl cursor-pointer"
+            onClick={() => router.push('/')}
           >
-            T
+            {customerInitial}
           </motion.div>
         )}
       </div>
@@ -98,7 +109,7 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
       <nav className="flex-1 overflow-y-auto py-6 custom-scrollbar overflow-x-hidden">
         <ul className="space-y-2 px-3">
           {navItems.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
             return (
               <li key={item.href}>
                 <Link
@@ -113,7 +124,7 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
                 >
                   {isActive && (
                     <motion.div
-                      layoutId="sidebar-active"
+                      layoutId="customer-sidebar-active"
                       className="absolute inset-0 bg-gradient-to-r from-brand-mint to-brand-caribbean rounded-xl shadow-[0_4px_15px_rgba(42,161,152,0.25)]"
                       initial={false}
                       transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -142,8 +153,8 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
       </nav>
       
       <div className="border-t border-border/40 p-4 bg-gradient-to-b from-transparent to-background/50 overflow-hidden">
-        <Link
-          href="/admin/login"
+        <a
+          href="/"
           onClick={handleLogout}
           title={isCollapsed ? "Logout" : undefined}
           className={cn(
@@ -162,7 +173,7 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
           >
             Logout
           </motion.span>
-        </Link>
+        </a>
       </div>
     </motion.div>
   )

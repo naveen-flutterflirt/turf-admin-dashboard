@@ -1,4 +1,4 @@
-import axios from '@/lib/axios'
+import axios from 'axios'
 
 export interface Owner {
   owner_id: string
@@ -10,14 +10,13 @@ export interface Owner {
   phone: string
   turf_count: string
 }
-
 export const ownersService = {
   getOwners: async (): Promise<Owner[]> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
 
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.get(process.env.NEXT_PUBLIC_API_URL + '/admin/owners', {
+    const response = await axios.get('https://turf-booking-1-mns7.onrender.com/admin/owners', {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -33,7 +32,7 @@ export const ownersService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/admin/owners/${owner_id}`, {
+    const response = await axios.delete(`https://turf-booking-1-mns7.onrender.com/admin/owners/${owner_id}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -41,6 +40,23 @@ export const ownersService = {
 
     if (!response.data || !response.data.success) {
       throw new Error(response.data?.message || "Failed to delete owner")
+    }
+  },
+
+  getAccountDetails: async (owner_id: string): Promise<any> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
+    if (!token) throw new Error("No authorization token found")
+
+    const response = await axios.get(`https://turf-booking-1-mns7.onrender.com/admin/owners/${owner_id}/account`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (response.data && response.data.success) {
+      return response.data.data
+    } else {
+      throw new Error(response.data?.message || "Failed to fetch account details")
     }
   }
 }

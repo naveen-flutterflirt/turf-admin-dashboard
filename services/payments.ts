@@ -20,7 +20,6 @@ export interface Payment {
   customer_name: string
   customer_email: string
 }
-
 export interface PaymentsResponse {
   stats: PaymentStats
   data: Payment[]

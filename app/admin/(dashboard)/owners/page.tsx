@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, Trash2 } from 'lucide-react'
+import { Search, Trash2, Eye, Landmark, User, Hash, CreditCard, Building2 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ownersService, Owner } from '@/services/owners'
 import { Pagination } from '@/components/ui/pagination'
@@ -33,13 +33,22 @@ export default function OwnersPage() {
     }
   })
 
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+
+  const { data: accountDetails, isLoading: isDetailsLoading, isError: isDetailsError } = useQuery({
+    queryKey: ['owner-account', selectedOwner?.owner_id || (selectedOwner as any)?._id],
+    queryFn: () => selectedOwner ? ownersService.getAccountDetails(selectedOwner.owner_id || (selectedOwner as any)._id) : Promise.reject('No owner'),
+    enabled: !!selectedOwner && isDetailsModalOpen
+  })
+
   // Derived state for filtering and pagination
   const filteredOwners = React.useMemo(() => {
     if (!owners) return []
     return owners.filter(owner => {
-      const matchesSearch = owner.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            owner.business_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            owner.email.toLowerCase().includes(searchTerm.toLowerCase())
+      const search = (searchTerm || '').toLowerCase()
+      const matchesSearch = (owner.name || '').toLowerCase().includes(search) || 
+                            (owner.business_name || '').toLowerCase().includes(search) ||
+                            (owner.email || '').toLowerCase().includes(search)
       return matchesSearch
     })
   }, [owners, searchTerm])
@@ -96,10 +105,10 @@ export default function OwnersPage() {
                   </TableHeader>
                   <TableBody>
                     <AnimatePresence mode="popLayout">
-                      {paginatedOwners.map((owner) => (
-                        <TableRow key={owner.owner_id}>
+                      {paginatedOwners.map((owner, index) => (
+                        <TableRow key={owner.owner_id || (owner as any)._id || index}>
                           <TableCell>
-                            <div className="font-medium text-primary">{owner.name}</div>
+                            <div className="font-medium text-primary">{owner.name || 'Unknown'}</div>
                           </TableCell>
                           <TableCell>
                             <div className="font-medium text-foreground">{owner.business_name}</div>
@@ -112,20 +121,33 @@ export default function OwnersPage() {
                             <span className="font-medium text-foreground">{owner.turf_count}</span>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {new Date(owner.owner_created_at).toLocaleDateString()}
+                            {owner.owner_created_at || (owner as any).created_at ? new Date(owner.owner_created_at || (owner as any).created_at).toLocaleDateString() : 'N/A'}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
-                              onClick={() => {
-                                setSelectedOwner(owner)
-                                setIsDeleteModalOpen(true)
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-brand-mint hover:bg-brand-mint/10 hover:text-brand-mint border-brand-mint/20"
+                                onClick={() => {
+                                  setSelectedOwner(owner)
+                                  setIsDetailsModalOpen(true)
+                                }}
+                              >
+                                <Eye className="h-4 w-4 mr-1.5" /> View Bank Details
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-red-500 hover:bg-red-500 hover:text-white transition-colors border border-transparent hover:border-red-500/20"
+                                onClick={() => {
+                                  setSelectedOwner(owner)
+                                  setIsDeleteModalOpen(true)
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -159,11 +181,77 @@ export default function OwnersPage() {
               className="bg-red-500 hover:bg-red-600 text-white"
               disabled={deleteMutation.isPending}
               onClick={() => {
-                if (selectedOwner) deleteMutation.mutate(selectedOwner.owner_id)
+                if (selectedOwner) deleteMutation.mutate(selectedOwner.owner_id || (selectedOwner as any)._id)
               }}
             >
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Account Details Modal */}
+      <Modal isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} title="Bank Details">
+        <div className="space-y-6">
+          <div className="bg-muted/30 p-4 rounded-xl border border-border flex items-start gap-4">
+            <div className="p-3 bg-brand-mint/10 rounded-full text-brand-mint">
+              <Landmark className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground text-lg">{selectedOwner?.name}</h3>
+              <p className="text-sm text-muted-foreground">{selectedOwner?.business_name}</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {isDetailsLoading ? (
+              <div className="py-8 text-center text-muted-foreground flex flex-col items-center gap-3">
+                <div className="w-6 h-6 border-2 border-brand-mint border-t-transparent rounded-full animate-spin" />
+                Fetching bank details...
+              </div>
+            ) : isDetailsError ? (
+              <div className="py-8 text-center text-red-500 bg-red-500/5 rounded-xl border border-red-500/20">
+                Failed to load account details. They might not be configured yet.
+              </div>
+            ) : accountDetails ? (
+              <div className="grid gap-3">
+                <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm">
+                  <div className="flex items-center gap-3 text-muted-foreground">
+                    <Building2 className="w-4 h-4" />
+                    <span className="text-sm font-medium">Bank Name</span>
+                  </div>
+                  <span className="font-semibold text-foreground">{accountDetails.bank_name}</span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm">
+                  <div className="flex items-center gap-3 text-muted-foreground">
+                    <User className="w-4 h-4" />
+                    <span className="text-sm font-medium">Account Name</span>
+                  </div>
+                  <span className="font-semibold text-foreground">{accountDetails.account_name}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm">
+                  <div className="flex items-center gap-3 text-muted-foreground">
+                    <CreditCard className="w-4 h-4" />
+                    <span className="text-sm font-medium">Account Number</span>
+                  </div>
+                  <span className="font-semibold text-foreground tracking-widest">{accountDetails.account_number}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm">
+                  <div className="flex items-center gap-3 text-muted-foreground">
+                    <Hash className="w-4 h-4" />
+                    <span className="text-sm font-medium">IFSC Code</span>
+                  </div>
+                  <span className="font-semibold text-foreground uppercase">{accountDetails.ifsc_code}</span>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="pt-2 flex justify-end">
+            <Button onClick={() => setIsDetailsModalOpen(false)}>Close</Button>
           </div>
         </div>
       </Modal>

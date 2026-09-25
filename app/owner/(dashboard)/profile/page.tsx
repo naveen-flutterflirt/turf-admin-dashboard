@@ -17,7 +17,6 @@ const profileSchema = z.object({
   phone: z.string().min(10, 'Please enter a valid phone number'),
   business_name: z.string().min(2, 'Business name is required'),
 })
-
 type ProfileFormValues = z.infer<typeof profileSchema>
 
 export default function OwnerProfilePage() {

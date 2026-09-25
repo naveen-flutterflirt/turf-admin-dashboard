@@ -17,7 +17,6 @@ export interface Booking {
   customer_email: string
   customer_phone: string
 }
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const bookingsService = {
