@@ -8,7 +8,6 @@ import { motion } from 'framer-motion'
 import { customerAuthService } from '@/services/customer-auth'
 
 const navItems = [
-  { name: 'Dashboard', href: '/customer/dashboard', icon: LayoutDashboard },
   { name: 'Turf', href: '/customer/turf', icon: TentTree },
   { name: 'My Booking', href: '/customer/bookings', icon: CalendarCheck },
   { name: 'Community', href: '/customer/community', icon: Users },
@@ -56,7 +55,7 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
       initial={false}
       animate={{ width: isCollapsed ? 80 : 260 }}
       transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-      className="flex flex-col h-screen border-r border-border/40 bg-card/40 backdrop-blur-2xl z-50 relative"
+      className="flex flex-col h-screen border-r border-border/40 bg-background md:bg-card/40 md:backdrop-blur-2xl z-50 relative shadow-2xl md:shadow-none"
     >
       {!hideCollapseButton && (
         <button
@@ -123,10 +122,10 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
                 >
                   {isActive && (
                     <motion.div
-                      layoutId="customer-sidebar-active"
                       className="absolute inset-0 bg-gradient-to-r from-brand-mint to-brand-caribbean rounded-xl shadow-[0_4px_15px_rgba(42,161,152,0.25)]"
-                      initial={false}
-                      transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2 }}
                     />
                   )}
                   {!isActive && (

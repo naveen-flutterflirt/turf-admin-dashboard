@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { customerTurfsService, TurfData } from '@/services/customer-turfs'
 import { customerBookingsService } from '@/services/customer-bookings'
@@ -114,6 +115,7 @@ const TurfCard = ({ turf, onClick }: { turf: TurfData, onClick: () => void }) =>
 }
 
 export default function CustomerTurfsPage() {
+  const router = useRouter()
   const [turfs, setTurfs] = useState<TurfData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -705,8 +707,8 @@ export default function CustomerTurfsPage() {
                   
                   {/* Fixed Bottom Bar */}
                   <div className="flex gap-3 p-4 bg-card border-t border-border/40 shrink-0 rounded-b-3xl">
-                    <Button variant="outline" className="flex-1 h-14 bg-brand-caribbean/10 text-brand-caribbean border-transparent hover:bg-brand-caribbean/20 rounded-2xl font-bold text-base">
-                      Find Peoples <Users className="w-5 h-5 ml-2" />
+                    <Button onClick={() => router.push('/customer/community')} variant="outline" className="flex-1 h-14 bg-brand-caribbean/10 text-brand-caribbean border-transparent hover:bg-brand-caribbean/20 rounded-2xl font-bold text-base">
+                      Find Players <Users className="w-5 h-5 ml-2" />
                     </Button>
                     <Button onClick={() => setBookingStep(1)} className="flex-1 h-14 bg-[#0f766e] text-white hover:bg-[#115e59] rounded-2xl font-bold text-base shadow-lg">
                       Book Now &rarr;
@@ -738,7 +740,7 @@ export default function CustomerTurfsPage() {
                         <button
                           key={s.id}
                           onClick={() => setSelectedSport(s.id)}
-                          className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition-all border ${selectedSport === s.id ? 'bg-brand-caribbean text-black border-brand-caribbean shadow-[0_0_10px_rgba(45,212,191,0.3)]' : 'bg-transparent text-foreground border-white/20 hover:bg-white/5'}`}
+                          className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition-all border ${selectedSport === s.id ? 'bg-brand-caribbean text-black border-brand-caribbean shadow-[0_0_10px_rgba(45,212,191,0.3)]' : 'bg-background text-foreground border-border hover:bg-muted'}`}
                         >
                           {s.name}
                         </button>
@@ -753,7 +755,7 @@ export default function CustomerTurfsPage() {
                           <button
                             key={idx}
                             onClick={() => setSelectedDate(date)}
-                            className={`flex flex-col items-center justify-center min-w-[70px] py-3 rounded-2xl border transition-all ${isSelected ? 'bg-brand-caribbean text-black border-brand-caribbean shadow-[0_0_10px_rgba(45,212,191,0.3)]' : 'bg-white/5 text-muted-foreground border-white/10 hover:bg-white/10'}`}
+                            className={`flex flex-col items-center justify-center min-w-[70px] py-3 rounded-2xl border transition-all ${isSelected ? 'bg-brand-caribbean text-black border-brand-caribbean shadow-[0_0_10px_rgba(45,212,191,0.3)]' : 'bg-background text-muted-foreground border-border hover:bg-muted'}`}
                           >
                             <span className="text-xs font-medium uppercase mb-1">{date.toLocaleDateString('en-US', {weekday: 'short'})}</span>
                             <span className="text-xl font-bold">{date.getDate()}</span>
@@ -768,7 +770,7 @@ export default function CustomerTurfsPage() {
                       <div className="flex items-center gap-4 mb-4 text-sm">
                         <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-brand-caribbean"></div> Available</div>
                         <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500"></div> Booked</div>
-                        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-white/20"></div> Unavailable</div>
+                        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-muted-foreground/30"></div> Unavailable</div>
                       </div>
 
                       {isFetchingSlots ? (
@@ -776,7 +778,7 @@ export default function CustomerTurfsPage() {
                           <div className="w-8 h-8 border-4 border-brand-caribbean/30 border-t-brand-caribbean rounded-full animate-spin" />
                         </div>
                       ) : !selectedSport ? (
-                        <div className="text-center py-10 text-muted-foreground bg-white/5 rounded-2xl border border-white/5">
+                        <div className="text-center py-10 text-muted-foreground bg-background rounded-2xl border border-border">
                           <p>Please select a sport to view slots.</p>
                         </div>
                       ) : slotsError ? (
@@ -784,7 +786,7 @@ export default function CustomerTurfsPage() {
                           <p>{slotsError}</p>
                         </div>
                       ) : fetchedSlots.morning.length === 0 && fetchedSlots.afternoon.length === 0 && fetchedSlots.evening.length === 0 ? (
-                        <div className="text-center py-10 text-muted-foreground bg-white/5 rounded-2xl border border-white/5">
+                        <div className="text-center py-10 text-muted-foreground bg-background rounded-2xl border border-border">
                           <p>No slots available for the selected date.</p>
                         </div>
                       ) : (
@@ -806,9 +808,9 @@ export default function CustomerTurfsPage() {
                                         onClick={() => setSelectedSlot(slot)}
                                         className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
                                           isSelected ? 'bg-brand-caribbean/20 border-brand-caribbean text-brand-caribbean' :
-                                          isAvailable ? 'bg-white/5 border-white/10 text-foreground hover:bg-white/10' :
+                                          isAvailable ? 'bg-background border-border text-foreground hover:bg-muted' :
                                           isBooked ? 'bg-red-500/10 border-red-500/30 text-red-400 cursor-not-allowed shadow-[0_0_15px_rgba(239,68,68,0.2)]' :
-                                          'bg-white/5 border-white/5 text-muted-foreground/50 cursor-not-allowed'
+                                          'bg-muted border-border text-muted-foreground/50 cursor-not-allowed'
                                         }`}
                                       >
                                         <span className="text-xs font-medium">{slot.label}</span>
@@ -835,7 +837,7 @@ export default function CustomerTurfsPage() {
                 {bookingStep === 2 && (
                   <div className="space-y-6">
                     {/* Summary Card */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4">
+                    <div className="bg-background border border-border rounded-2xl p-4 flex items-center gap-4">
                       <img src={selectedTurf.images?.[0]?.image_url} alt={selectedTurf.name} className="w-16 h-16 rounded-xl object-cover" />
                       <div>
                         <h3 className="font-bold text-lg">{selectedTurf.name}</h3>
@@ -844,7 +846,7 @@ export default function CustomerTurfsPage() {
                     </div>
 
                     {/* Booking Details */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+                    <div className="bg-background border border-border rounded-2xl p-5 space-y-4">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">Sport</span>
                         <span className="font-medium text-right">{selectedTurf.sports?.find(s => s.id === selectedSport)?.name || 'Selected Sport'}</span>
@@ -861,7 +863,7 @@ export default function CustomerTurfsPage() {
                         <span className="text-muted-foreground">Duration</span>
                         <span className="font-medium text-right">1 Hour</span>
                       </div>
-                      <div className="flex justify-between items-center text-sm border-t border-white/10 pt-4 mt-2">
+                      <div className="flex justify-between items-center text-sm border-t border-border pt-4 mt-2">
                         <span className="font-bold">Total Amount</span>
                         <span className="font-bold text-brand-caribbean text-lg">₹{selectedSlot?.price}</span>
                       </div>

@@ -47,7 +47,7 @@ export default function LandingPage() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-            <Link href="/customer/dashboard" className="hover:text-brand-mint transition-colors cursor-pointer">Explore</Link>
+            <Link href="/customer/turf" className="hover:text-brand-mint transition-colors cursor-pointer">Explore</Link>
             <a href="#" className="hover:text-brand-mint transition-colors">Community</a>
             <Link href="/owner/dashboard" className="hover:text-brand-mint transition-colors cursor-pointer">For Owners</Link>
           </div>
@@ -78,7 +78,7 @@ export default function LandingPage() {
               exit={{ opacity: 0, y: -20 }}
               className="fixed inset-0 z-40 bg-brand-dark-green/95 backdrop-blur-xl flex flex-col items-center justify-center gap-8 text-xl font-medium"
             >
-              <Link href="/customer/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-brand-mint transition-colors cursor-pointer">Explore</Link>
+              <Link href="/customer/turf" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-brand-mint transition-colors cursor-pointer">Explore</Link>
               <a href="#" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-brand-mint transition-colors">Community</a>
               <Link href="/owner/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-brand-mint transition-colors cursor-pointer">For Owners</Link>
               <a href="https://play.google.com/store/apps/details?id=com.turfcut.app" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>
@@ -93,10 +93,11 @@ export default function LandingPage() {
         {/* =======================
             HERO SECTION
         ======================== */}
-        <section className="relative flex flex-col justify-center pt-40 pb-24 px-4 sm:px-6 lg:px-8">
-          <div className="absolute inset-0 z-0">
+        <section className="relative flex flex-col justify-center pt-40 pb-24 px-4 sm:px-6 lg:px-8 min-h-screen">
+          {/* FIXED BACKGROUND VIDEO FOR PREMIUM PARALLAX EFFECT */}
+          <div className="fixed top-0 left-0 w-full h-screen z-0">
             <div className="absolute inset-0 bg-black/40 z-10" />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-green via-brand-dark-green/60 to-transparent z-10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-green via-brand-dark-green/80 to-transparent z-10" />
 
             <video
               autoPlay
@@ -142,7 +143,7 @@ export default function LandingPage() {
                     Download App
                   </Button>
                 </a>
-                <Link href="/customer/dashboard" className="flex flex-1 items-center justify-center w-full h-14 sm:h-16 text-sm sm:text-lg font-bold bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 rounded-2xl transition-all whitespace-nowrap px-2 sm:px-6 cursor-pointer">
+                <Link href="/customer/turf" className="flex flex-1 items-center justify-center w-full h-14 sm:h-16 text-sm sm:text-lg font-bold bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 rounded-2xl transition-all whitespace-nowrap px-2 sm:px-6 cursor-pointer">
                   Explore Turfs
                 </Link>
               </motion.div>
@@ -346,7 +347,7 @@ export default function LandingPage() {
             <div>
               <h4 className="font-bold text-white mb-6 text-lg tracking-wide">Play</h4>
               <ul className="space-y-4 text-white/50 text-sm font-medium">
-                <li><Link href="/customer/dashboard" className="hover:text-brand-mint hover:translate-x-1 transition-all inline-block cursor-pointer">Explore Turfs</Link></li>
+                <li><Link href="/customer/turf" className="hover:text-brand-mint hover:translate-x-1 transition-all inline-block cursor-pointer">Explore Turfs</Link></li>
               </ul>
             </div>
 

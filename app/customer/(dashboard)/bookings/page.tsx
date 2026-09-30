@@ -281,7 +281,7 @@ export default function CustomerBookingsPage() {
       case 'COMPLETED': return 'bg-brand-caribbean/10 text-brand-caribbean border-brand-caribbean/20'
       case 'PENDING': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
       case 'CANCELLED': return 'bg-red-500/10 text-red-500 border-red-500/20'
-      default: return 'bg-white/10 text-white/70 border-white/20'
+      default: return 'bg-secondary/20 text-muted-foreground border-border/40'
     }
   }
 
@@ -413,7 +413,7 @@ export default function CustomerBookingsPage() {
                           <span className="text-[10px] text-muted-foreground ml-2 uppercase font-mono tracking-wider">Your Review</span>
                         </div>
                         {feedbacksMap[booking.id].comment && (
-                          <p className="text-xs text-white/80 italic leading-relaxed">"{feedbacksMap[booking.id].comment}"</p>
+                          <p className="text-xs text-muted-foreground italic leading-relaxed">"{feedbacksMap[booking.id].comment}"</p>
                         )}
                       </div>
                     )}
@@ -451,7 +451,7 @@ export default function CustomerBookingsPage() {
                         )}
                         <div className="text-right">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono mb-1">Booking ID</p>
-                          <p className="text-sm font-mono text-white/50">{booking.id.split('-')[0].toUpperCase()}</p>
+                          <p className="text-sm font-mono text-foreground/60 font-semibold">{booking.id.split('-')[0].toUpperCase()}</p>
                         </div>
                       </div>
                     </div>
@@ -476,7 +476,7 @@ export default function CustomerBookingsPage() {
             >
               <button 
                 onClick={() => setFeedbackModal(prev => ({ ...prev, isOpen: false }))} 
-                className="absolute top-4 right-4 text-muted-foreground hover:text-white"
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
               >
                 <XCircle className="w-6 h-6" />
               </button>

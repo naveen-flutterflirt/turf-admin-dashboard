@@ -124,15 +124,17 @@
 
   button,
   [role="button"],
-  a {
-    cursor: pointer;
+  a,
+  .cursor-pointer,
+  [onClick] {
+    cursor: pointer !important;
   }
 
   button:disabled,
   [role="button"]:disabled,
   [aria-disabled="true"],
   .disabled {
-    cursor: not-allowed;
+    cursor: not-allowed !important;
   }
 }
 
