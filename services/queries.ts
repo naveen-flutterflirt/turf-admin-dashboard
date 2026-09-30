@@ -102,5 +102,25 @@ export const queriesService = {
     } catch (error: any) {
       throw new Error(error.response?.data?.message || error.message || "Failed to submit query")
     }
+  },
+
+  getAdminFeedbacks: async (): Promise<any[]> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
+    if (!token) throw new Error("No authorization token found")
+
+    const response = await axios.get(`${API_URL}/admin/feedbacks`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (response.data && response.data.success) {
+      return Array.isArray(response.data.data) ? response.data.data : (response.data.data?.feedbacks || [])
+    } else if (Array.isArray(response.data)) {
+      return response.data
+    } else {
+      throw new Error(response.data?.message || "Failed to fetch feedbacks")
+    }
   }
 }
+

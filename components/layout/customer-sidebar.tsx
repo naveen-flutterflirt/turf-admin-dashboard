@@ -12,7 +12,6 @@ const navItems = [
   { name: 'Turf', href: '/customer/turf', icon: TentTree },
   { name: 'My Booking', href: '/customer/bookings', icon: CalendarCheck },
   { name: 'Community', href: '/customer/community', icon: Users },
-  { name: 'Query', href: '/customer/query', icon: MessageSquareText },
   { name: 'Profile', href: '/customer/profile', icon: UserSquare2 },
 ]
 
@@ -85,7 +84,7 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
         <motion.img 
           src="/Logo.png" 
           alt="TurfPlay Logo" 
-          className="h-full object-contain cursor-pointer" 
+          className="h-full object-contain cursor-pointer dark:invert-0 dark:hue-rotate-0 invert hue-rotate-180 transition-all duration-300" 
           onClick={() => router.push('/')}
           animate={{ 
             opacity: isCollapsed ? 0 : 1,
@@ -153,7 +152,7 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
       </nav>
       
       <div className="border-t border-border/40 p-4 bg-gradient-to-b from-transparent to-background/50 overflow-hidden">
-        <a
+        <Link
           href="/"
           onClick={handleLogout}
           title={isCollapsed ? "Logout" : undefined}
@@ -173,7 +172,7 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
           >
             Logout
           </motion.span>
-        </a>
+        </Link>
       </div>
     </motion.div>
   )

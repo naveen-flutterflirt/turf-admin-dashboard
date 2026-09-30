@@ -1,15 +1,15 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, Reply, MessageSquare } from 'lucide-react'
+import { Search, Reply, MessageSquare, Star, User } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queriesService, QueryType } from '@/services/queries'
 import { Modal } from '@/components/ui/modal'
 
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { EmptyState } from '@/components/ui/empty-state'
 
@@ -17,7 +17,17 @@ import { Pagination } from '@/components/ui/pagination'
 
 export default function QueriesPage() {
   const queryClient = useQueryClient()
-  const { data: queries, isLoading, isError } = useQuery({ queryKey: ['queries'], queryFn: queriesService.getQueries })
+  const [activeTab, setActiveTab] = useState<'owner' | 'customer'>('owner')
+  
+  // Owner Queries
+  const { data: queries, isLoading: isQueriesLoading, isError: isQueriesError } = useQuery({ queryKey: ['queries'], queryFn: queriesService.getQueries })
+  
+  // Customer Feedbacks
+  const { data: customerFeedbacks, isLoading: isFeedbacksLoading, isError: isFeedbacksError } = useQuery({
+    queryKey: ['admin_feedbacks'],
+    queryFn: queriesService.getAdminFeedbacks,
+    enabled: activeTab === 'customer'
+  })
   
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
   const [selectedQuery, setSelectedQuery] = useState<QueryType | null>(null)
@@ -45,8 +55,8 @@ export default function QueriesPage() {
     }
   })
 
-  // Derived state for filtering and pagination
-  const filteredQueries = React.useMemo(() => {
+  // Derived state for filtering and pagination (Owner Queries)
+  const filteredQueries = useMemo(() => {
     if (!queries) return []
     return queries.filter(q => {
       const subjectMatch = (q.subject || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -55,11 +65,24 @@ export default function QueriesPage() {
     })
   }, [queries, searchTerm])
 
-  const totalPages = Math.ceil(filteredQueries.length / ITEMS_PER_PAGE)
-  
-  // Ensure currentPage is valid for the current filtered list
-  const validCurrentPage = Math.min(currentPage, Math.max(1, totalPages))
+  const totalQueryPages = Math.ceil(filteredQueries.length / ITEMS_PER_PAGE)
+  const validCurrentPage = Math.min(currentPage, Math.max(1, totalQueryPages))
   const paginatedQueries = filteredQueries.slice((validCurrentPage - 1) * ITEMS_PER_PAGE, validCurrentPage * ITEMS_PER_PAGE)
+
+  // Derived state for filtering and pagination (Customer Feedbacks)
+  const filteredFeedbacks = useMemo(() => {
+    if (!customerFeedbacks) return []
+    return customerFeedbacks.filter((f: any) => {
+      const commentMatch = (f.comment || '').toLowerCase().includes(searchTerm.toLowerCase())
+      const customerMatch = (f.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+      const turfMatch = (f.turf_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+      return commentMatch || customerMatch || turfMatch
+    })
+  }, [customerFeedbacks, searchTerm])
+  
+  const totalFeedbackPages = Math.ceil(filteredFeedbacks.length / ITEMS_PER_PAGE)
+  const validFeedbackPage = Math.min(currentPage, Math.max(1, totalFeedbackPages))
+  const paginatedFeedbacks = filteredFeedbacks.slice((validFeedbackPage - 1) * ITEMS_PER_PAGE, validFeedbackPage * ITEMS_PER_PAGE)
 
   const handleReplySubmit = () => {
     if (!selectedQuery) return
@@ -73,14 +96,37 @@ export default function QueriesPage() {
       status: status
     })
   }
+  
+  const isLoading = activeTab === 'owner' ? isQueriesLoading : isFeedbacksLoading
+  const isError = activeTab === 'owner' ? isQueriesError : isFeedbacksError
+  const totalPages = activeTab === 'owner' ? totalQueryPages : totalFeedbackPages
+  const isEmpty = activeTab === 'owner' ? filteredQueries.length === 0 : filteredFeedbacks.length === 0
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Owner Queries</h2>
-          <p className="text-muted-foreground mt-1">Manage and reply to queries from turf owners.</p>
+          <h2 className="text-3xl font-bold tracking-tight">Support & Feedback</h2>
+          <p className="text-muted-foreground mt-1">Manage owner queries and view customer feedbacks.</p>
         </div>
+      </div>
+      
+      {/* Elegant Tabs */}
+      <div className="flex p-1 bg-secondary/30 rounded-2xl w-max border border-border/50 shadow-inner">
+        <button
+          onClick={() => { setActiveTab('owner'); setCurrentPage(1); setSearchTerm(''); }}
+          className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${activeTab === 'owner' ? 'bg-background shadow-md text-brand-mint border border-border/40' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
+        >
+          <MessageSquare className="w-4 h-4" />
+          Owner Queries
+        </button>
+        <button
+          onClick={() => { setActiveTab('customer'); setCurrentPage(1); setSearchTerm(''); }}
+          className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${activeTab === 'customer' ? 'bg-background shadow-md text-brand-caribbean border border-border/40' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
+        >
+          <Star className="w-4 h-4" />
+          Customer Feedback
+        </button>
       </div>
 
       <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm">
@@ -88,7 +134,7 @@ export default function QueriesPage() {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Search queries..." 
+              placeholder={activeTab === 'owner' ? "Search queries..." : "Search feedbacks..."}
               className="pl-9 bg-secondary/20 w-full"
               value={searchTerm}
               onChange={(e) => {
@@ -101,31 +147,44 @@ export default function QueriesPage() {
         <CardContent className="p-0 sm:p-6 sm:pt-0 flex flex-col min-h-[400px]">
           <div className="flex-1 w-full overflow-hidden">
             {isLoading ? (
-              <div className="py-10 text-center text-muted-foreground">Loading queries...</div>
+              <div className="py-10 text-center text-muted-foreground flex justify-center items-center gap-2">
+                <span className="animate-spin rounded-full h-5 w-5 border-2 border-brand-mint/20 border-t-brand-mint" />
+                Loading {activeTab === 'owner' ? 'queries' : 'feedbacks'}...
+              </div>
             ) : isError ? (
-              <div className="py-10 text-center text-red-500">Failed to load queries.</div>
-            ) : filteredQueries.length === 0 ? (
+              <div className="py-10 text-center text-red-500">Failed to load {activeTab === 'owner' ? 'queries' : 'feedbacks'}.</div>
+            ) : isEmpty ? (
               <EmptyState 
-                icon={MessageSquare} 
-                title="No queries found" 
-                description="We couldn't find any queries matching your current search filters."
+                icon={activeTab === 'owner' ? MessageSquare : Star} 
+                title={activeTab === 'owner' ? "No queries found" : "No feedbacks found"}
+                description="We couldn't find any results matching your current search filters."
                 action={<Button variant="outline" onClick={() => setSearchTerm('')}>Clear Search</Button>}
               />
             ) : (
               <div className="w-full overflow-x-auto custom-scrollbar pb-2">
                 <Table className="min-w-[800px]">
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Message</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created At</TableHead>
-                      <TableHead className="w-[120px] text-right">Actions</TableHead>
-                    </TableRow>
+                    {activeTab === 'owner' ? (
+                      <TableRow>
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Message</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Created At</TableHead>
+                        <TableHead className="w-[120px] text-right">Actions</TableHead>
+                      </TableRow>
+                    ) : (
+                      <TableRow>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Turf</TableHead>
+                        <TableHead>Rating</TableHead>
+                        <TableHead>Comment</TableHead>
+                        <TableHead>Created At</TableHead>
+                      </TableRow>
+                    )}
                   </TableHeader>
                   <TableBody>
                     <AnimatePresence mode="popLayout">
-                      {paginatedQueries.map((query) => (
+                      {activeTab === 'owner' && paginatedQueries.map((query) => (
                         <TableRow key={query.id}>
                           <TableCell className="font-medium max-w-[200px] truncate" title={query.subject}>{query.subject}</TableCell>
                           <TableCell className="max-w-[300px] truncate" title={query.message}>{query.message}</TableCell>
@@ -159,6 +218,33 @@ export default function QueriesPage() {
                           </TableCell>
                         </TableRow>
                       ))}
+                      
+                      {activeTab === 'customer' && paginatedFeedbacks.map((feedback: any) => (
+                        <TableRow key={feedback.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground shrink-0">
+                                <User className="w-4 h-4" />
+                              </div>
+                              <span className="font-medium truncate max-w-[150px]" title={feedback.customer_name}>{feedback.customer_name || 'Unknown'}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium truncate max-w-[150px]" title={feedback.turf_name}>{feedback.turf_name || 'Unknown Turf'}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star key={i} className={`w-3.5 h-3.5 ${i < feedback.rating ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground/30'}`} />
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-[300px] truncate" title={feedback.comment}>
+                            {feedback.comment || <span className="text-muted-foreground italic text-xs">No comment</span>}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(feedback.created_at || new Date()).toLocaleDateString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </AnimatePresence>
                   </TableBody>
                 </Table>
@@ -167,7 +253,7 @@ export default function QueriesPage() {
           </div>
           
           {/* Pagination Controls */}
-          {!isLoading && !isError && filteredQueries.length > 0 && (
+          {!isLoading && !isError && !isEmpty && (
             <div className="mt-auto pt-4 border-t">
               <Pagination 
                 currentPage={currentPage}
@@ -242,3 +328,4 @@ export default function QueriesPage() {
     </div>
   )
 }
+

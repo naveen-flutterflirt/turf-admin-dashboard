@@ -30,7 +30,9 @@ export interface TurfData {
   distance_km: string;
   average_rating: string;
   total_reviews: string;
+  feedbacks: any[];
   sports: Sport[];
+  amenities: any[];
   images: TurfImage[];
 }
 
@@ -111,6 +113,37 @@ export const customerTurfsService = {
         success: false,
         message: 'Network error or server is unreachable. Please try again later.'
       };
+    }
+  },
+
+  getTurfSlots: async (turf_id: string, date: string, sport_id: string): Promise<{ success: boolean, message?: string, data?: any }> => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('customer_token') : null;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const url = `https://api.eatmeat.live/customer/turfs/${turf_id}/slots?date=${date}&sport_id=${sport_id}`;
+      const response = await fetch(url, { method: 'GET', headers });
+
+      let result: any;
+      try {
+        result = await response.json();
+      } catch (e) {
+        return { success: false, message: 'Invalid response from server' };
+      }
+      
+      if (!response.ok || !result.success) {
+        return { success: false, message: result?.message || result?.error || 'Failed to fetch slots' };
+      }
+
+      return { success: true, data: result.data || result.slots || [] };
+    } catch (error: any) {
+      return { success: false, message: 'Network error or server is unreachable.' };
     }
   }
 };

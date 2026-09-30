@@ -243,7 +243,7 @@ export function CustomerAuthModal({ isOpen, onClose }: { isOpen: boolean, onClos
                     
                     <div className="flex flex-col items-center gap-4 mt-6">
                       <div className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-                        <span>Didn't receive the code?</span>
+                        <span>Didn&apos;t receive the code?</span>
                         <button 
                           type="button"
                           onClick={handleResendCode}

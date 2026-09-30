@@ -76,7 +76,7 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
         <motion.img 
           src="/Logo.png" 
           alt="Turf Admin Logo" 
-          className="h-full object-contain" 
+          className="h-full object-contain dark:invert-0 dark:hue-rotate-0 invert hue-rotate-180 transition-all duration-300" 
           animate={{ 
             opacity: isCollapsed ? 0 : 1,
             scale: isCollapsed ? 0.5 : 1,
