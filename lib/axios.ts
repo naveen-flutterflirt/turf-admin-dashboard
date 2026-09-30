@@ -15,9 +15,11 @@ axiosInstance.interceptors.request.use(
         token = localStorage.getItem('admin_token');
       } else if (path.startsWith('/owner')) {
         token = localStorage.getItem('owner_token');
+      } else if (path.startsWith('/customer')) {
+        token = localStorage.getItem('customer_token');
       } else {
         // Fallback: check which one exists if not in a specific route
-        token = localStorage.getItem('owner_token') || localStorage.getItem('admin_token');
+        token = localStorage.getItem('customer_token') || localStorage.getItem('owner_token') || localStorage.getItem('admin_token');
       }
 
       if (token) {
@@ -46,6 +48,10 @@ axiosInstance.interceptors.response.use(
           localStorage.removeItem('owner_token');
           localStorage.removeItem('owner_user');
           window.location.href = '/owner/login';
+        } else if (path.startsWith('/customer')) {
+          localStorage.removeItem('customer_token');
+          localStorage.removeItem('customer_user');
+          window.location.href = '/';
         }
       }
     }

@@ -6,7 +6,7 @@ import { communityService } from '@/services/community'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, Plus, MessageSquare, Users, UserPlus, Clock, Calendar, Check, X, Trash2, Send, ArrowLeft, Trophy } from 'lucide-react'
+import { Search, Plus, MessageSquare, Users, UserPlus, Clock, Calendar, Check, X, Trash2, Send, ArrowLeft, Trophy, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 import { Modal } from '@/components/ui/modal'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -16,6 +16,18 @@ export default function CustomerCommunityPage() {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<'feed' | 'my-broadcasts' | 'chats'>('feed')
   const [searchTerm, setSearchTerm] = useState('')
+
+  // Read from sessionStorage on client mount to avoid hydration mismatch
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTab = sessionStorage.getItem('community_activeTab') as 'feed' | 'my-broadcasts' | 'chats'
+      if (savedTab) setActiveTab(savedTab)
+    }
+  }, [])
+
+  useEffect(() => {
+    sessionStorage.setItem('community_activeTab', activeTab)
+  }, [activeTab])
 
   // Queries
   const { data: feedData, isLoading: isFeedLoading } = useQuery({ queryKey: ['community_feed'], queryFn: communityService.getFeed })
@@ -45,12 +57,46 @@ export default function CustomerCommunityPage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   useEffect(() => {
     try {
-      const userStr = localStorage.getItem('customer_user')
-      if (userStr) setCurrentUser(JSON.parse(userStr))
-    } catch(e){}
+      const token = localStorage.getItem('customer_token')
+      if (token) {
+        // Parse JWT payload safely
+        const base64Url = token.split('.')[1];
+        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        while (base64.length % 4 !== 0) {
+          base64 += '=';
+        }
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        const decoded = JSON.parse(jsonPayload);
+        
+        const userStr = localStorage.getItem('customer_user')
+        const storedUser = userStr ? JSON.parse(userStr) : {}
+        
+        setCurrentUser({ ...storedUser, id: decoded.id || decoded.userId || decoded.sub })
+      }
+    } catch(e) {
+      console.error('Error parsing token:', e)
+    }
   }, [])
 
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedChat = sessionStorage.getItem('community_selectedChatId')
+      if (savedChat) setSelectedChatId(savedChat)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (selectedChatId) {
+      sessionStorage.setItem('community_selectedChatId', selectedChatId)
+    } else {
+      sessionStorage.removeItem('community_selectedChatId')
+    }
+  }, [selectedChatId])
+
   const [chatMessage, setChatMessage] = useState('')
   const { data: chatHistoryData, isLoading: isChatHistoryLoading } = useQuery({ 
     queryKey: ['chat_history', selectedChatId], 
@@ -61,6 +107,16 @@ export default function CustomerCommunityPage() {
   const [realtimeMessages, setRealtimeMessages] = useState<any[]>([])
   const socketRef = useRef<Socket | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
+  const [chatRoomNameForm, setChatRoomNameForm] = useState('')
+
+  const { data: chatMembersData, isLoading: isChatMembersLoading } = useQuery({
+    queryKey: ['chat_members', selectedChatId],
+    queryFn: () => communityService.getChatRoomMembers(selectedChatId!),
+    enabled: !!selectedChatId && isMembersModalOpen
+  })
+  const chatMembers = chatMembersData?.data || []
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -88,9 +144,9 @@ export default function CustomerCommunityPage() {
       socketRef.current = socket
 
       const joinRoom = () => {
-        // Emit both raw string and object to ensure backend catches the room join regardless of how they implemented it
-        socket.emit("join_room", selectedChatId)
-        socket.emit("join_room", { room_id: selectedChatId }) 
+        if (currentUser?.id) {
+          socket.emit("join_chat_room", { roomId: selectedChatId, userId: currentUser.id }) 
+        }
       }
 
       if (socket.connected) {
@@ -100,18 +156,27 @@ export default function CustomerCommunityPage() {
       socket.on("connect", joinRoom)
 
       const handleIncomingMessage = (data: any) => {
-        setRealtimeMessages(prev => [...prev, data])
+        setRealtimeMessages(prev => {
+          // Replace optimistic message or ignore duplicate
+          if (prev.some(m => m.id === data.id || (m.sender_id === data.sender_id && m.message === data.message && m.id?.toString().startsWith('temp-')))) {
+            return prev.map(m => (m.sender_id === data.sender_id && m.message === data.message && m.id?.toString().startsWith('temp-')) ? data : m)
+          }
+          return [...prev, data]
+        })
       }
 
       socket.on("receive_message", handleIncomingMessage)
       socket.on("message", handleIncomingMessage)
+      socket.on("message_error", (err) => {
+        toast.error(`Message error: ${err.error || 'Failed to send'}`)
+      })
 
       return () => {
         socket.disconnect()
         socketRef.current = null
       }
     }
-  }, [activeTab, selectedChatId])
+  }, [activeTab, selectedChatId, currentUser?.id])
 
   const allMessages = [...chatMessages, ...realtimeMessages]
 
@@ -159,20 +224,45 @@ export default function CustomerCommunityPage() {
     onError: (e: any) => toast.error(e?.response?.data?.message || "Failed to delete broadcast")
   })
 
+  const updateRoomNameMutation = useMutation({
+    mutationFn: (data: { roomId: string, name: string }) => communityService.updateChatRoomName(data.roomId, data.name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my_chats'] })
+      toast.success("Room name updated")
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || "Failed to update room name")
+  })
+
+  const removeMemberMutation = useMutation({
+    mutationFn: (data: { roomId: string, userId: string }) => communityService.removeChatMember(data.roomId, data.userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat_members', selectedChatId] })
+      toast.success("Member removed")
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || "Failed to remove member")
+  })
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault()
     if (!chatMessage.trim()) return
 
     if (socketRef.current && socketRef.current.connected) {
+      const tempId = `temp-${Date.now()}`
       socketRef.current.emit("send_message", {
-        room_id: selectedChatId,
+        roomId: selectedChatId,
+        senderId: currentUser?.id,
         message: chatMessage
       })
-      // Optimistic update
+      
+      // Optimistic update so you see your own message instantly
       setRealtimeMessages(prev => [...prev, {
-        sender_id: 'Me',
+        id: tempId,
+        sender_id: currentUser?.id,
+        sender_name: currentUser?.name || 'Me',
         message: chatMessage,
+        created_at: new Date().toISOString()
       }])
+      
       setChatMessage('')
     } else {
       toast.error("Not connected to chat server")
@@ -364,8 +454,10 @@ export default function CustomerCommunityPage() {
                     {pendingRequests.map((req: any) => (
                       <div key={req.id} className="flex items-center justify-between p-4 bg-card border border-border/50 rounded-2xl shadow-sm">
                         <div>
-                          <p className="font-semibold text-foreground">User {req.user_id} wants to join</p>
-                          <p className="text-sm text-muted-foreground">Broadcast ID: {req.broadcast_id}</p>
+                          <p className="font-semibold text-foreground">
+                            <span className="text-brand-mint">{req.requester_name || 'A player'}</span> is requesting to join
+                          </p>
+                          <p className="text-sm text-muted-foreground line-clamp-1">"{req.broadcast_message}"</p>
                         </div>
                         <Button 
                           onClick={() => acceptRequestMutation.mutate(req.id)}
@@ -402,9 +494,10 @@ export default function CustomerCommunityPage() {
                           <MessageSquare className="w-5 h-5" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-foreground">{chat.name || `Chat Room ${(chat.id || chat.room_id || chat.roomId || chat._id || '').toString().slice(0, 4)}`}</h3>
-                          <p className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Users className="w-3.5 h-3.5" /> Tap to view conversation
+                          <h3 className="font-bold text-foreground line-clamp-1">{chat.name || chat.broadcast_message || `Community Match`}</h3>
+                          <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                            <Users className="w-3.5 h-3.5" /> 
+                            {chat.host_name ? `Hosted by ${chat.host_name}` : 'Tap to view conversation'}
                           </p>
                         </div>
                       </div>
@@ -428,17 +521,21 @@ export default function CustomerCommunityPage() {
                 <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
                   <MessageSquare className="w-4 h-4" />
                 </div>
-                <div>
+                <div className="flex-1">
                   {(() => {
                     const activeChat = chats.find((c: any) => (c.id || c.room_id || c.roomId || c._id) === selectedChatId)
                     return (
                       <>
-                        <h3 className="font-bold text-foreground">{activeChat?.name || activeChat?.message || `Chat Room ${(selectedChatId || '').slice(0, 6)}`}</h3>
+                        <h3 className="font-bold text-foreground">{activeChat?.name || activeChat?.broadcast_message || `Chat Room ${(selectedChatId || '').slice(0, 6)}`}</h3>
                         <p className="text-xs text-muted-foreground">Community Match Conversation</p>
                       </>
                     )
                   })()}
                 </div>
+                <Button variant="outline" size="sm" onClick={() => setIsMembersModalOpen(true)} className="rounded-xl hover:bg-secondary flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-blue-500" />
+                  <span className="hidden sm:inline">Group Info</span>
+                </Button>
               </div>
               
               <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
@@ -625,6 +722,79 @@ export default function CustomerCommunityPage() {
               {deleteBroadcastMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Chat Room Members Modal */}
+      <Modal isOpen={isMembersModalOpen} onClose={() => setIsMembersModalOpen(false)} title="Chat Room Details">
+        <div className="space-y-6 pt-2">
+          {(() => {
+            const activeChat = chats.find((c: any) => (c.id || c.room_id || c.roomId || c._id) === selectedChatId)
+            const isHost = Boolean(activeChat && currentUser && activeChat.host_id === currentUser.id)
+            return (
+              <>
+                <div className="space-y-3 pb-4 border-b border-border/50">
+                  <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                    <Settings className="w-4 h-4 text-blue-500" />
+                    Update Room Name
+                  </label>
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="New room name..." 
+                        value={chatRoomNameForm}
+                        onChange={(e) => setChatRoomNameForm(e.target.value)}
+                        className="rounded-xl bg-secondary/20 border-border/50 h-11 focus-visible:ring-blue-500"
+                      />
+                      <Button 
+                        onClick={() => {
+                          if (chatRoomNameForm.trim() && selectedChatId) {
+                            updateRoomNameMutation.mutate({ roomId: selectedChatId, name: chatRoomNameForm })
+                          }
+                        }}
+                        disabled={updateRoomNameMutation.isPending || !chatRoomNameForm.trim()}
+                        className="rounded-xl px-6 bg-blue-500 text-white shadow-md hover:bg-blue-600 font-bold"
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                
+                <div className="space-y-4">
+                  <h4 className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                    <Users className="w-4 h-4 text-blue-500" />
+                    Members
+                  </h4>
+                  {isChatMembersLoading ? (
+                    <div className="flex justify-center py-4 text-blue-500"><span className="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent" /></div>
+                  ) : chatMembers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No members found.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                      {chatMembers.map((member: any) => (
+                        <div key={member.id} className="flex items-center justify-between p-3 bg-secondary/10 border border-border/50 rounded-xl">
+                          <div>
+                            <p className="font-semibold text-sm text-foreground">{member.name || `User ${member.id}`}</p>
+                            <p className="text-xs text-muted-foreground">{member.email}</p>
+                          </div>
+                          {isHost && currentUser?.id !== member.id && (
+                            <Button 
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => selectedChatId && removeMemberMutation.mutate({ roomId: selectedChatId, userId: member.id })}
+                              disabled={removeMemberMutation.isPending}
+                              className="h-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg px-3 text-xs font-semibold"
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )
+          })()}
         </div>
       </Modal>
     </div>
