@@ -62,7 +62,7 @@ export default function TermsAndConditionsPage() {
                   <span className="text-brand-caribbean">2.</span> Booking and Cancellations
                 </h2>
                 <ul className="list-disc pl-5 space-y-3 marker:text-brand-mint">
-                  <li><strong className="text-white">For Players:</strong> All bookings made through Turfcut are subject to the availability of the venue. Cancellation policies are set by individual turf owners. Please review the specific cancellation policy of the venue before completing your booking. <strong className="text-white">Refunds for player cancellations will be processed strictly according to the specific venue's policy, minus any non-refundable platform processing fees.</strong></li>
+                  <li><strong className="text-white">For Players:</strong> All bookings made through Turfcut are subject to the availability of the venue. Cancellation policies are set by individual turf owners. Please review the specific cancellation policy of the venue before completing your booking. <strong className="text-white">Refunds for player cancellations will be processed strictly according to the specific venue&apos;s policy, minus any non-refundable platform processing fees.</strong></li>
                   <li><strong className="text-white">For Owners:</strong> You agree to honor all confirmed bookings. In the event of an unavoidable cancellation on your part, you must notify the platform and the user immediately to facilitate a full refund to the player.</li>
                 </ul>
               </section>

@@ -598,12 +598,9 @@ export default function CustomerTurfsPage() {
                     )}
 
                     {/* Top action buttons */}
-                    <div className="absolute top-4 left-4 right-4 flex justify-between z-20">
+                    <div className="absolute top-4 left-4 z-20">
                       <button onClick={() => setSelectedTurf(null)} className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center shadow-md hover:bg-white/90">
                         <span className="text-xl leading-none font-bold pb-1">&larr;</span>
-                      </button>
-                      <button className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center shadow-md hover:bg-white/90">
-                        <Heart className="w-5 h-5" />
                       </button>
                     </div>
                   </div>

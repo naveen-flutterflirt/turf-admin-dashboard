@@ -55,12 +55,12 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
       initial={false}
       animate={{ width: isCollapsed ? 80 : 260 }}
       transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-      className="flex flex-col h-screen border-r border-border/40 bg-background md:bg-card/40 md:backdrop-blur-2xl z-50 relative shadow-2xl md:shadow-none"
+      className="flex flex-col h-screen border-r border-border bg-card dark:bg-gradient-to-b dark:from-card dark:to-[#032221]/40 z-50 relative shadow-2xl md:shadow-lg"
     >
       {!hideCollapseButton && (
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-6 bg-primary text-primary-foreground rounded-full p-1 shadow-md hover:bg-primary/90 transition-colors z-50"
+          className="absolute -right-3.5 top-6 bg-brand-caribbean text-brand-dark-green rounded-full p-1.5 shadow-lg hover:scale-105 transition-transform z-50 ring-4 ring-background"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -69,7 +69,7 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
             className={cn("transition-transform duration-300", isCollapsed ? "rotate-180" : "")}
@@ -79,7 +79,7 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
         </button>
       )}
 
-      <div className="flex items-center justify-center h-16 border-b border-border py-2 overflow-hidden">
+      <div className="flex items-center justify-center h-20 border-b border-border/50 py-3 overflow-hidden px-4">
         <motion.img 
           src="/Logo.png" 
           alt="TurfPlay Logo" 
@@ -96,7 +96,7 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
           <motion.div 
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-8 h-8 rounded-lg bg-brand-caribbean/20 flex items-center justify-center text-brand-dark-green font-bold text-xl cursor-pointer"
+            className="w-10 h-10 rounded-xl bg-brand-caribbean/20 flex items-center justify-center text-brand-caribbean font-bold text-xl cursor-pointer"
             onClick={() => router.push('/')}
           >
             {customerInitial}
@@ -105,7 +105,7 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
       </div>
       
       <nav className="flex-1 overflow-y-auto py-6 custom-scrollbar overflow-x-hidden">
-        <ul className="space-y-2 px-3">
+        <ul className="space-y-2 px-4">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
             return (
@@ -115,21 +115,18 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
                   onClick={(e) => handleNavigation(e, item.href)}
                   title={isCollapsed ? item.name : undefined}
                   className={cn(
-                    "flex items-center rounded-xl py-3 text-sm font-medium transition-all relative cursor-pointer group",
-                    isCollapsed ? "justify-center px-0" : "gap-3.5 px-4",
-                    isActive ? "text-brand-dark-green" : "text-muted-foreground hover:text-foreground"
+                    "flex items-center rounded-xl py-3.5 text-sm font-semibold transition-all relative cursor-pointer group",
+                    isCollapsed ? "justify-center px-0" : "gap-4 px-4",
+                    isActive ? "text-brand-dark-green" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                   )}
                 >
                   {isActive && (
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-brand-mint to-brand-caribbean rounded-xl shadow-[0_4px_15px_rgba(42,161,152,0.25)]"
+                      className="absolute inset-0 bg-gradient-to-r from-brand-caribbean to-brand-mint rounded-xl shadow-[0_0_15px_rgba(42,161,152,0.3)]"
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.2 }}
                     />
-                  )}
-                  {!isActive && (
-                    <div className="absolute inset-0 bg-muted/0 group-hover:bg-muted/60 rounded-xl transition-colors duration-300 z-0" />
                   )}
                   <item.icon className={cn("h-5 w-5 relative z-10 transition-transform duration-300 group-hover:scale-110 flex-shrink-0", isActive ? "drop-shadow-sm" : "")} />
                   
@@ -139,7 +136,7 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
                       width: isCollapsed ? 0 : "auto",
                       display: isCollapsed ? "none" : "block"
                     }}
-                    className="relative z-10 font-semibold tracking-wide whitespace-nowrap overflow-hidden"
+                    className="relative z-10 tracking-wide whitespace-nowrap overflow-hidden"
                   >
                     {item.name}
                   </motion.span>
@@ -150,14 +147,14 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
         </ul>
       </nav>
       
-      <div className="border-t border-border/40 p-4 bg-gradient-to-b from-transparent to-background/50 overflow-hidden">
+      <div className="border-t border-border/50 p-4 overflow-hidden">
         <Link
           href="/"
           onClick={handleLogout}
           title={isCollapsed ? "Logout" : undefined}
           className={cn(
-            "flex items-center rounded-xl py-3 text-sm font-semibold text-red-500/80 hover:text-red-500 hover:bg-red-500/10 transition-all cursor-pointer group",
-            isCollapsed ? "justify-center px-0" : "gap-3.5 px-4"
+            "flex items-center rounded-xl py-3.5 text-sm font-semibold text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all cursor-pointer group",
+            isCollapsed ? "justify-center px-0" : "gap-4 px-4"
           )}
         >
           <LogOut className="h-5 w-5 transition-transform duration-300 group-hover:-translate-x-1 flex-shrink-0" />

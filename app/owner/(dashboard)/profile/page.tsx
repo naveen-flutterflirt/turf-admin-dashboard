@@ -10,7 +10,7 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-
+import { Modal } from '@/components/ui/modal'
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
@@ -22,6 +22,8 @@ type ProfileFormValues = z.infer<typeof profileSchema>
 export default function OwnerProfilePage() {
   const [loading, setLoading] = useState(true)
   const [initialData, setInitialData] = useState<ProfileFormValues | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema)
@@ -114,10 +116,28 @@ export default function OwnerProfilePage() {
     }
   }
 
+  const handleDeleteAccount = async () => {
+    try {
+      setIsDeleting(true)
+      const token = localStorage.getItem('owner_token')
+      if (!token) return
+      await axios.delete('https://api.eatmeat.live/auth/delete-account', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      localStorage.removeItem('owner_token')
+      localStorage.removeItem('owner_user')
+      window.location.href = '/owner/login'
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete account")
+      setIsDeleting(false)
+      setIsDeleteModalOpen(false)
+    }
+  }
+
   return (
-    <div className="space-y-6 pb-10 max-w-3xl mx-auto">
+    <div className="flex flex-col h-auto md:h-[calc(100vh-8rem)] max-w-4xl mx-auto pb-4 gap-6">
       <Toaster position="top-right" richColors />
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border/40 pb-6 shrink-0">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">My Profile</h2>
           <p className="text-muted-foreground mt-1">Manage your account settings and business details.</p>
@@ -127,8 +147,8 @@ export default function OwnerProfilePage() {
       {loading ? (
         <Card className="bg-card/40 backdrop-blur-xl border-border/50 h-[400px] animate-pulse" />
       ) : (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm overflow-hidden">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-2 space-y-6">
+          <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm overflow-hidden mb-6">
             <CardHeader className="border-b border-border/50 bg-muted/20 pb-8">
               <div className="flex items-center gap-6">
                 <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-brand-mint to-brand-caribbean flex items-center justify-center text-brand-dark-green font-bold text-4xl shadow-lg border-4 border-background">
@@ -212,8 +232,62 @@ export default function OwnerProfilePage() {
               </form>
             </CardContent>
           </Card>
+          
+          <Card className="bg-red-500/5 border-red-500/20 shadow-sm overflow-hidden shrink-0 mt-6">
+            <CardHeader className="border-b border-red-500/10 bg-red-500/5 pb-4">
+              <CardTitle className="text-xl text-red-500 flex items-center gap-2">Danger Zone</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h3 className="font-semibold text-foreground">Delete Account</h3>
+                  <p className="text-muted-foreground text-sm mt-1">Once you delete your account, there is no going back. Please be certain.</p>
+                </div>
+                <Button 
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  variant="danger"
+                  className="rounded-xl h-10 px-6 shrink-0 bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-500/20"
+                >
+                  Delete Account
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
       )}
+
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => !isDeleting && setIsDeleteModalOpen(false)}
+        title="Delete Account"
+        description="Are you absolutely sure you want to delete your account?"
+      >
+        <div className="space-y-6">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-sm text-red-500 font-medium">
+            This action cannot be undone. All your business data, turfs, and bookings will be permanently removed.
+          </div>
+          
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-border">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isDeleting}
+              className="rounded-xl"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="danger" 
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold"
+            >
+              {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Yes, Delete Account
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

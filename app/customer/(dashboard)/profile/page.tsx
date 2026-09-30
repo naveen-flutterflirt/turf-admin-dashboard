@@ -1,11 +1,12 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, Mail, Phone, CalendarDays, ShieldCheck, Activity, LogOut, Edit2, X, Check } from 'lucide-react'
+import { User, Mail, Phone, CalendarDays, ShieldCheck, Activity, LogOut, Edit2, X, Check, Loader2 } from 'lucide-react'
 import { customerProfileService, CustomerProfileData } from '@/services/customer-profile'
 import { customerAuthService } from '@/services/customer-auth'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
+import { Modal } from '@/components/ui/modal'
 
 export default function CustomerProfilePage() {
   const [profile, setProfile] = useState<CustomerProfileData | null>(null)
@@ -17,6 +18,8 @@ export default function CustomerProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', phone: '' })
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const router = useRouter()
 
@@ -86,6 +89,26 @@ export default function CustomerProfilePage() {
     window.location.href = '/customer/turf'
   }
 
+  const handleDeleteAccount = async () => {
+    try {
+      setIsDeleting(true)
+      const token = localStorage.getItem('customer_token')
+      if (!token) return
+      await fetch('https://api.eatmeat.live/auth/delete-account', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      localStorage.removeItem('customer_token')
+      localStorage.removeItem('customer_user')
+      window.location.href = '/customer/turf'
+    } catch (err: any) {
+      console.error("Failed to delete account", err)
+      setError("Failed to delete account.")
+      setIsDeleting(false)
+      setIsDeleteModalOpen(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -112,8 +135,8 @@ export default function CustomerProfilePage() {
   if (!profile) return null;
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto pb-12">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border/40 pb-8">
+    <div className="flex flex-col h-auto md:h-[calc(100vh-8rem)] max-w-5xl mx-auto pb-4 gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border/40 pb-6 shrink-0">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">My Profile</h1>
           <p className="text-muted-foreground">Manage your personal details and account settings.</p>
@@ -163,7 +186,7 @@ export default function CustomerProfilePage() {
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-h-0 overflow-y-auto md:overflow-hidden pb-10 md:pb-0">
         {/* Profile Card */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -193,9 +216,9 @@ export default function CustomerProfilePage() {
           transition={{ delay: 0.1 }}
           className="md:col-span-2"
         >
-          <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2rem] p-8 h-full">
-            <h3 className="text-xl font-bold mb-6">Personal Information</h3>
-            <div className="space-y-6">
+          <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2rem] p-8 h-full flex flex-col">
+            <h3 className="text-xl font-bold mb-6 shrink-0">Personal Information</h3>
+            <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1">
               
               <div className="flex items-center gap-4 p-4 rounded-2xl bg-background/50 border border-border/50 hover:border-brand-mint/30 transition-colors group">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-brand-mint/20 group-hover:text-brand-mint transition-colors shrink-0">
@@ -272,6 +295,58 @@ export default function CustomerProfilePage() {
           </div>
         </motion.div>
       </div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-red-500/5 border border-red-500/20 rounded-[2rem] p-6 shrink-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-2"
+      >
+        <div>
+          <h3 className="font-semibold text-red-500 flex items-center gap-2">Danger Zone: Delete Account</h3>
+          <p className="text-muted-foreground text-sm mt-1">Once you delete your account, there is no going back. Please be certain.</p>
+        </div>
+        <Button 
+          onClick={() => setIsDeleteModalOpen(true)}
+          variant="danger" 
+          className="rounded-xl px-6 shrink-0 bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-500/20"
+        >
+          Delete Account
+        </Button>
+      </motion.div>
+
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => !isDeleting && setIsDeleteModalOpen(false)}
+        title="Delete Account"
+        description="Are you absolutely sure you want to delete your account?"
+      >
+        <div className="space-y-6">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-sm text-red-500 font-medium">
+            This action cannot be undone. All your personal data and bookings will be permanently removed.
+          </div>
+          
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-border">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isDeleting}
+              className="rounded-xl"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="danger" 
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold"
+            >
+              {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Yes, Delete Account
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
