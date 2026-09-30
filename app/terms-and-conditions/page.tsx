@@ -17,7 +17,7 @@ export default function TermsAndConditionsPage() {
       <div className="absolute bottom-1/4 -left-20 w-[30rem] h-[30rem] bg-brand-mint/20 rounded-full blur-[120px] z-0 pointer-events-none" />
 
       <div className="max-w-4xl mx-auto relative z-10">
-        <Link href="/" className="inline-flex items-center text-brand-mint hover:text-white transition-colors mb-8 font-medium">
+        <Link href="https://turf-admin-dashboard-six.vercel.app/" className="inline-flex items-center text-brand-mint hover:text-white transition-colors mb-8 font-medium">
           <ChevronLeft className="w-5 h-5 mr-1" />
           Back to Home
         </Link>
@@ -34,7 +34,7 @@ export default function TermsAndConditionsPage() {
                 <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
                   Terms and Conditions
                 </h1>
-                <p className="text-brand-anti-flash/60 mt-1">Last updated: {new Date().toLocaleDateString()}</p>
+                <p className="text-brand-anti-flash/60 mt-1">Last updated: 9/25/2026</p>
               </div>
             </div>
 
@@ -42,6 +42,9 @@ export default function TermsAndConditionsPage() {
               <section>
                 <p>
                   Welcome to <strong>Turfcut</strong>. These Terms and Conditions govern your use of our platform, applications, and services. By registering for an account or using our platform to book or list turf venues, you agree to be bound by these terms.
+                </p>
+                <p className="mt-4 font-bold text-white">
+                  Your use of the platform is also governed by our Privacy Policy, which details how we collect, use, and protect your personal data.
                 </p>
               </section>
 
@@ -59,8 +62,8 @@ export default function TermsAndConditionsPage() {
                   <span className="text-brand-caribbean">2.</span> Booking and Cancellations
                 </h2>
                 <ul className="list-disc pl-5 space-y-3 marker:text-brand-mint">
-                  <li><strong className="text-white">For Players:</strong> All bookings made through Turfcut are subject to the availability of the venue. Cancellation policies are set by individual turf owners. Please review the specific cancellation policy of the venue before completing your booking.</li>
-                  <li><strong className="text-white">For Owners:</strong> You agree to honor all confirmed bookings. In the event of an unavoidable cancellation on your part, you must notify the platform and the user immediately to facilitate a full refund.</li>
+                  <li><strong className="text-white">For Players:</strong> All bookings made through Turfcut are subject to the availability of the venue. Cancellation policies are set by individual turf owners. Please review the specific cancellation policy of the venue before completing your booking. <strong className="text-white">Refunds for player cancellations will be processed strictly according to the specific venue's policy, minus any non-refundable platform processing fees.</strong></li>
+                  <li><strong className="text-white">For Owners:</strong> You agree to honor all confirmed bookings. In the event of an unavoidable cancellation on your part, you must notify the platform and the user immediately to facilitate a full refund to the player.</li>
                 </ul>
               </section>
 
@@ -69,8 +72,7 @@ export default function TermsAndConditionsPage() {
                   <span className="text-brand-caribbean">3.</span> Payments and Fees
                 </h2>
                 <p>
-                  Turfcut facilitates payments between players and turf owners through secure third-party gateways (e.g., Razorpay). 
-                  Turf owners agree to our standard commission structure, which is automatically deducted from payouts. We are not responsible for transaction failures caused by external banking networks.
+                  Turfcut facilitates payments between players and turf owners through secure third-party gateways (e.g., Razorpay). Turf owners agree to our standard commission structure, which is automatically deducted from payouts. We are not responsible for transaction failures caused by external banking networks or third-party gateways.
                 </p>
               </section>
 
@@ -93,13 +95,31 @@ export default function TermsAndConditionsPage() {
                   <span className="text-brand-caribbean">5.</span> Liability and Disclaimers
                 </h2>
                 <p>
-                  Turfcut acts solely as a technological bridge between players and venue owners. We are not liable for any injuries, damages, or disputes that occur on the physical premises of the booked turfs. Venue owners are solely responsible for maintaining safe facilities and holding appropriate liability insurance.
+                  Turfcut acts solely as a technological bridge between players and venue owners. We are not liable for any injuries, damages, losses, or disputes that occur on the physical premises of the booked turfs. Venue owners are solely responsible for maintaining safe facilities, adhering to local safety regulations, and holding appropriate liability insurance.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-bold text-brand-mint mb-4 flex items-center gap-2">
-                  <span className="text-brand-caribbean">6.</span> Contact Us
+                  <span className="text-brand-caribbean">6.</span> Modifications to Terms
+                </h2>
+                <p className="font-bold text-white">
+                  Turfcut reserves the right to modify these Terms and Conditions at any time. We will notify users of any significant changes via email or platform notifications. Continued use of the platform after changes are posted constitutes your acceptance of the new terms.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold text-brand-mint mb-4 flex items-center gap-2">
+                  <span className="text-brand-caribbean">7.</span> Governing Law and Jurisdiction
+                </h2>
+                <p className="font-bold text-white">
+                  These terms shall be governed by and construed in accordance with the laws of [Your Country/State, e.g., India]. Any disputes arising out of or relating to these terms or your use of the platform shall be subject to the exclusive jurisdiction of the courts located in [Your City, e.g., Bangalore].
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold text-brand-mint mb-4 flex items-center gap-2">
+                  <span className="text-brand-caribbean">8.</span> Contact Us
                 </h2>
                 <p>
                   For any questions regarding these Terms and Conditions, please reach out to our legal team at:
