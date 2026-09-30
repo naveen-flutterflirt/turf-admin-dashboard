@@ -295,7 +295,7 @@ export default function CustomerCommunityPage() {
   }, [feed, searchTerm])
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-12">
+    <div className={`max-w-6xl mx-auto flex flex-col transition-all duration-300 ${activeTab === 'chats' && selectedChatId ? 'h-[calc(100vh-9rem)] gap-4' : 'space-y-6 pb-12'}`}>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Community Hub</h1>
@@ -339,6 +339,7 @@ export default function CustomerCommunityPage() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
+          className={activeTab === 'chats' && selectedChatId ? 'flex-1 overflow-hidden flex flex-col' : 'mt-6'}
         >
           
           {/* ================== FEED TAB ================== */}
@@ -457,7 +458,7 @@ export default function CustomerCommunityPage() {
                           <p className="font-semibold text-foreground">
                             <span className="text-brand-mint">{req.requester_name || 'A player'}</span> is requesting to join
                           </p>
-                          <p className="text-sm text-muted-foreground line-clamp-1">"{req.broadcast_message}"</p>
+                          <p className="text-sm text-muted-foreground line-clamp-1">&quot;{req.broadcast_message}&quot;</p>
                         </div>
                         <Button 
                           onClick={() => acceptRequestMutation.mutate(req.id)}
@@ -513,7 +514,7 @@ export default function CustomerCommunityPage() {
 
           {/* ================== ACTIVE CHAT VIEW ================== */}
           {activeTab === 'chats' && selectedChatId && (
-            <div className="flex flex-col h-[600px] border border-border/50 bg-card rounded-2xl overflow-hidden shadow-sm">
+            <div className="flex flex-col flex-1 border border-border/50 bg-card rounded-2xl overflow-hidden shadow-sm h-full">
               <div className="p-4 border-b border-border/50 bg-secondary/20 flex items-center gap-3">
                 <button onClick={() => setSelectedChatId(null)} className="p-2 hover:bg-secondary rounded-full transition-colors">
                   <ArrowLeft className="w-5 h-5" />

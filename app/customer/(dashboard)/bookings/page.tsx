@@ -413,7 +413,7 @@ export default function CustomerBookingsPage() {
                           <span className="text-[10px] text-muted-foreground ml-2 uppercase font-mono tracking-wider">Your Review</span>
                         </div>
                         {feedbacksMap[booking.id].comment && (
-                          <p className="text-xs text-muted-foreground italic leading-relaxed">"{feedbacksMap[booking.id].comment}"</p>
+                          <p className="text-xs text-muted-foreground italic leading-relaxed">&quot;{feedbacksMap[booking.id].comment}&quot;</p>
                         )}
                       </div>
                     )}
