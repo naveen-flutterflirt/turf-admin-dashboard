@@ -730,7 +730,7 @@ export default function CustomerCommunityPage() {
         <div className="space-y-6 pt-2">
           {(() => {
             const activeChat = chats.find((c: any) => (c.id || c.room_id || c.roomId || c._id) === selectedChatId)
-            const isHost = Boolean(activeChat && currentUser && activeChat.host_id === currentUser.id)
+            const isHost = Boolean(activeChat && currentUser && String(activeChat.host_id) === String(currentUser.id))
             return (
               <>
                 <div className="space-y-3 pb-4 border-b border-border/50">
@@ -776,7 +776,7 @@ export default function CustomerCommunityPage() {
                             <p className="font-semibold text-sm text-foreground">{member.name || `User ${member.id}`}</p>
                             <p className="text-xs text-muted-foreground">{member.email}</p>
                           </div>
-                          {isHost && currentUser?.id !== member.id && (
+                          {isHost && String(currentUser?.id) !== String(member.id) && (
                             <Button 
                               size="sm"
                               variant="ghost"
