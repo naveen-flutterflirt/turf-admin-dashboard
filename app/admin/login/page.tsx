@@ -105,7 +105,7 @@ export default function LoginPage() {
               transition={{ delay: 0.2, type: "spring" }}
               className="w-28 h-28 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl flex items-center justify-center mx-auto shadow-2xl p-3"
             >
-              <img src="/Logo.png" alt="Admin Logo" className="h-full w-full object-contain drop-shadow-md rounded-2xl" />
+              <img src="/images/Logo.png" alt="Admin Logo" className="h-full w-full object-contain drop-shadow-md rounded-2xl" />
             </motion.div>
           </CardHeader>
 
@@ -166,7 +166,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-mint to-brand-caribbean text-brand-dark-green hover:from-brand-caribbean hover:to-brand-mint border-none shadow-[0_0_30px_rgba(42,161,152,0.4)] hover:shadow-[0_0_40px_rgba(42,161,152,0.6)] transition-all rounded-2xl mt-6 group"
+                className="w-full h-14 text-lg mt-6 group"
               >
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Secure Login'}
               </Button>

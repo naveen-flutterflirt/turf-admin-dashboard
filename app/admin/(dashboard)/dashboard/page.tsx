@@ -26,8 +26,22 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-brand-mint animate-spin" />
+      <div className="space-y-8 pb-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="h-9 w-48 bg-muted/40 animate-pulse rounded-lg"></div>
+            <div className="h-4 w-64 bg-muted/40 animate-pulse rounded-lg mt-2"></div>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="h-32 bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl animate-pulse"></div>
+          ))}
+        </div>
+        <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+          <div className="h-[400px] bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl animate-pulse"></div>
+          <div className="h-[400px] bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl animate-pulse"></div>
+        </div>
       </div>
     )
   }
@@ -42,19 +56,19 @@ export default function DashboardPage() {
   }
 
   const summaryData = [
-    { title: 'Total Customers', value: dashboard.totalCustomers.toLocaleString(), icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', trend: 'Registered users' },
-    { title: 'Total Owners', value: dashboard.totalOwners.toLocaleString(), icon: UserSquare2, color: 'text-brand-mint', bg: 'bg-brand-mint/10', trend: 'Partnered businesses' },
-    { title: 'Active Turfs', value: dashboard.activeTurfs.toLocaleString(), icon: TentTree, color: 'text-primary', bg: 'bg-primary/10', trend: 'Live on platform' },
-    { title: 'Pending Turfs', value: dashboard.pendingTurfs.toLocaleString(), icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-500/10', trend: 'Requires approval' },
+    { title: 'Total Customers', value: (dashboard.totalCustomers ?? dashboard.total_customers ?? 0).toLocaleString(), icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', trend: 'Registered users' },
+    { title: 'Total Owners', value: (dashboard.totalOwners ?? dashboard.total_owners ?? 0).toLocaleString(), icon: UserSquare2, color: 'text-brand-mint', bg: 'bg-brand-mint/10', trend: 'Partnered businesses' },
+    { title: 'Active Turfs', value: (dashboard.activeTurfs ?? dashboard.active_turfs ?? 0).toLocaleString(), icon: TentTree, color: 'text-primary', bg: 'bg-primary/10', trend: 'Live on platform' },
+    { title: 'Pending Turfs', value: (dashboard.pendingTurfs ?? dashboard.pending_turfs ?? 0).toLocaleString(), icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-500/10', trend: 'Requires approval' },
     
-    { title: 'Total Bookings', value: dashboard.totalBookings.toLocaleString(), icon: CalendarCheck, color: 'text-purple-500', bg: 'bg-purple-500/10', trend: 'All-time reservations' },
-    { title: "Today's Activity", value: dashboard.todaysActivity.toLocaleString(), icon: Activity, color: 'text-accent', bg: 'bg-accent/10', trend: 'Matches scheduled today' },
-    { title: 'Total Revenue', value: '₹' + dashboard.totalRevenue.toLocaleString('en-IN'), icon: IndianRupee, color: 'text-green-500', bg: 'bg-green-500/10', trend: 'Total collected' },
-    { title: 'Successful Pymts', value: dashboard.successfulPayments.toLocaleString(), icon: TrendingUp, color: 'text-orange-500', bg: 'bg-orange-500/10', trend: 'Completed transactions' },
+    { title: 'Total Bookings', value: (dashboard.totalBookings ?? dashboard.total_bookings ?? 0).toLocaleString(), icon: CalendarCheck, color: 'text-purple-500', bg: 'bg-purple-500/10', trend: 'All-time reservations' },
+    { title: "Today's Activity", value: (dashboard.todaysActivity ?? dashboard.todays_activity ?? 0).toLocaleString(), icon: Activity, color: 'text-accent', bg: 'bg-accent/10', trend: 'Matches scheduled today' },
+    { title: 'Total Revenue', value: '₹' + (dashboard.totalRevenue ?? dashboard.total_revenue ?? 0).toLocaleString('en-IN'), icon: IndianRupee, color: 'text-green-500', bg: 'bg-green-500/10', trend: 'Total collected' },
+    { title: 'Successful Pymts', value: (dashboard.successfulPayments ?? dashboard.successful_payments ?? 0).toLocaleString(), icon: TrendingUp, color: 'text-orange-500', bg: 'bg-orange-500/10', trend: 'Completed transactions' },
   ]
 
-  const recentBookings = dashboard.recentBookings || []
-  const recentPayments = dashboard.recentTransactions || []
+  const recentBookings = dashboard.recentBookings || dashboard.recent_bookings || []
+  const recentPayments = dashboard.recentTransactions || dashboard.recent_transactions || []
 
   return (
     <div className="space-y-8 pb-10">
@@ -120,7 +134,7 @@ export default function DashboardPage() {
                   <div className="text-right shrink-0">
                     <div className="font-bold text-brand-mint text-sm">₹{parseFloat(booking.total_price || '0').toLocaleString('en-IN')}</div>
                     <div className={`text-xs mt-0.5 font-medium px-2 py-0.5 rounded-full inline-block ${
-                      booking.status === 'CONFIRMED' ? 'bg-green-500/10 text-green-500' :
+                      booking.status === 'CONFIRMED' || booking.status === 'COMPLETED' || booking.status === 'SUCCESS' ? 'bg-green-500/10 text-green-500' :
                       booking.status === 'CANCELLED' ? 'bg-red-500/10 text-red-500' :
                       'bg-yellow-500/10 text-yellow-500'
                     }`}>

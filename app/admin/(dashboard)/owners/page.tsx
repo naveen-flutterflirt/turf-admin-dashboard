@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, Trash2, Eye, Landmark, User, Hash, CreditCard, Building2 } from 'lucide-react'
+import { Search, Trash2, Eye, Landmark, User, Hash, CreditCard, Building2, Copy } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ownersService, Owner } from '@/services/owners'
 import { Pagination } from '@/components/ui/pagination'
 import { AnimatePresence } from 'framer-motion'
 import { Modal } from '@/components/ui/modal'
+import { toast } from 'sonner'
 
 export default function OwnersPage() {
   const queryClient = useQueryClient()
@@ -18,7 +19,7 @@ export default function OwnersPage() {
   // Search, Pagination state
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 8
+  const [itemsPerPage, setItemsPerPage] = useState(8)
 
   // Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -53,8 +54,8 @@ export default function OwnersPage() {
     })
   }, [owners, searchTerm])
 
-  const totalPages = Math.ceil(filteredOwners.length / ITEMS_PER_PAGE)
-  const paginatedOwners = filteredOwners.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(filteredOwners.length / itemsPerPage)
+  const paginatedOwners = filteredOwners.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
 
 
@@ -85,7 +86,11 @@ export default function OwnersPage() {
         <CardContent className="p-0 sm:p-6 sm:pt-0 flex flex-col min-h-[400px]">
           <div className="flex-1 w-full overflow-hidden">
             {isLoading ? (
-              <div className="py-10 text-center text-muted-foreground">Loading owners...</div>
+              <div className="w-full p-6 space-y-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="w-full h-16 bg-muted/40 rounded-xl animate-pulse border border-border/50" />
+                ))}
+              </div>
             ) : isError ? (
               <div className="py-10 text-center text-red-500">Failed to load owners. Please ensure you are logged in.</div>
             ) : filteredOwners.length === 0 ? (
@@ -164,6 +169,10 @@ export default function OwnersPage() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={filteredOwners.length}
+                onItemsPerPageChange={(num) => { setItemsPerPage(num); setCurrentPage(1); }}
+                itemsPerPageOptions={[5, 8, 10, 20, 50]}
               />
             </div>
           )}
@@ -210,42 +219,83 @@ export default function OwnersPage() {
                 Fetching bank details...
               </div>
             ) : isDetailsError ? (
-              <div className="py-8 text-center text-red-500 bg-red-500/5 rounded-xl border border-red-500/20">
-                Failed to load account details. They might not be configured yet.
+              <div className="py-8 text-center flex flex-col items-center gap-3">
+                <div className="p-4 bg-muted/50 rounded-full text-muted-foreground mb-2">
+                  <Landmark className="w-8 h-8 opacity-50" />
+                </div>
+                <h4 className="text-base font-semibold">No Bank Details Found</h4>
+                <p className="text-sm text-muted-foreground">This owner has not configured their bank details yet.</p>
               </div>
             ) : accountDetails ? (
               <div className="grid gap-3">
-                <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm">
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Building2 className="w-4 h-4" />
-                    <span className="text-sm font-medium">Bank Name</span>
-                  </div>
-                  <span className="font-semibold text-foreground">{accountDetails.bank_name}</span>
-                </div>
-                
-                <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm">
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <User className="w-4 h-4" />
-                    <span className="text-sm font-medium">Account Name</span>
-                  </div>
-                  <span className="font-semibold text-foreground">{accountDetails.account_name}</span>
-                </div>
+                {(() => {
+                  const bankInfo = accountDetails.account_details || accountDetails.bank_details || accountDetails.bankDetails || accountDetails.accountDetails || accountDetails;
+                  return (
+                    <>
+                      <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm group">
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                          <Building2 className="w-4 h-4" />
+                          <span className="text-sm font-medium">Bank Name</span>
+                        </div>
+                        <span className="font-semibold text-foreground">{bankInfo.bank_name || 'N/A'}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm group">
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                          <User className="w-4 h-4" />
+                          <span className="text-sm font-medium">Account Name</span>
+                        </div>
+                        <span className="font-semibold text-foreground">{bankInfo.account_holder_name || bankInfo.account_name || 'N/A'}</span>
+                      </div>
 
-                <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm">
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <CreditCard className="w-4 h-4" />
-                    <span className="text-sm font-medium">Account Number</span>
-                  </div>
-                  <span className="font-semibold text-foreground tracking-widest">{accountDetails.account_number}</span>
-                </div>
+                      <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm group">
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                          <CreditCard className="w-4 h-4" />
+                          <span className="text-sm font-medium">Account Number</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground tracking-widest">{bankInfo.bank_account_number || bankInfo.account_number || 'N/A'}</span>
+                          {(bankInfo.bank_account_number || bankInfo.account_number) && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => {
+                                navigator.clipboard.writeText(bankInfo.bank_account_number || bankInfo.account_number);
+                                toast.success("Account number copied");
+                              }}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
 
-                <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm">
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Hash className="w-4 h-4" />
-                    <span className="text-sm font-medium">IFSC Code</span>
-                  </div>
-                  <span className="font-semibold text-foreground uppercase">{accountDetails.ifsc_code}</span>
-                </div>
+                      <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg shadow-sm group">
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                          <Hash className="w-4 h-4" />
+                          <span className="text-sm font-medium">IFSC Code</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground uppercase">{bankInfo.ifsc || bankInfo.ifsc_code || 'N/A'}</span>
+                          {(bankInfo.ifsc || bankInfo.ifsc_code) && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => {
+                                navigator.clipboard.writeText(bankInfo.ifsc || bankInfo.ifsc_code);
+                                toast.success("IFSC code copied");
+                              }}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             ) : null}
           </div>

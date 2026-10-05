@@ -75,7 +75,7 @@ export default function DownloadPage() {
           <Link href="/" className="flex items-center text-white/60 hover:text-white transition-colors">
             <ChevronLeft className="w-5 h-5 mr-1" /> Back to Home
           </Link>
-          <img src="/Logo.png" alt="TurfPlay Logo" className="h-8 object-contain drop-shadow-md" />
+          <img src="/images/Logo.png" alt="TurfPlay Logo" className="h-8 object-contain drop-shadow-md" />
         </nav>
 
         {/* Ambient Backgrounds */}
@@ -140,7 +140,7 @@ export default function DownloadPage() {
                 <div className="flex-1 bg-brand-dark-green relative p-6 pt-12">
                   {/* Mockup UI Inner */}
                   <div className="flex items-center justify-between mb-6">
-                    <img src="/Logo.png" alt="App Logo" className="h-6 object-contain brightness-0 invert opacity-80" />
+                    <img src="/images/Logo.png" alt="App Logo" className="h-6 object-contain brightness-0 invert opacity-80" />
                     <div className="w-8 h-8 rounded-full bg-white/10" />
                   </div>
                   <div className="w-full h-32 rounded-2xl bg-gradient-to-br from-brand-mint/20 to-transparent mb-4" />

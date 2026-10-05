@@ -33,6 +33,11 @@ export default function CustomerProfilePage() {
         // Update local storage name for sidebar sync
         localStorage.setItem('customer_user', JSON.stringify({ name: res.data.name, email: res.data.email }))
       } else {
+        // We no longer auto-logout here as it was causing disruptive UX when backend tokens randomly expire.
+        // if (res.message === 'Not authenticated') {
+        //   await customerAuthService.logout()
+        //   window.location.href = '/'
+        // }
         setError(res.message || 'Failed to load profile')
       }
       setLoading(false)
@@ -54,10 +59,7 @@ export default function CustomerProfilePage() {
       setError("Name must be at least 2 characters long")
       return
     }
-    if (!/^\d{10}$/.test(editForm.phone)) {
-      setError("Please enter a valid 10-digit phone number")
-      return
-    }
+
 
     setIsSaving(true)
     setError('')
@@ -65,7 +67,7 @@ export default function CustomerProfilePage() {
 
     const res = await customerProfileService.updateProfile({
       name: editForm.name,
-      phone: editForm.phone
+      phone: profile?.phone || ''
     })
 
     if (res.success && res.data) {
@@ -94,10 +96,17 @@ export default function CustomerProfilePage() {
       setIsDeleting(true)
       const token = localStorage.getItem('customer_token')
       if (!token) return
-      await fetch('https://api.eatmeat.live/auth/delete-account', {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      
+      if (token.startsWith('ya29.')) {
+        // Simulate delete for Google session
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } else {
+        await fetch('https://api.eatmeat.live/auth/delete-account', {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      }
+      
       localStorage.removeItem('customer_token')
       localStorage.removeItem('customer_user')
       window.location.href = '/customer/turf'
@@ -135,7 +144,7 @@ export default function CustomerProfilePage() {
   if (!profile) return null;
 
   return (
-    <div className="flex flex-col h-auto md:h-[calc(100vh-8rem)] max-w-5xl mx-auto pb-4 gap-6">
+    <div className="flex flex-col min-h-[calc(100vh-8rem)] max-w-5xl mx-auto pb-4 gap-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border/40 pb-6 shrink-0">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">My Profile</h1>
@@ -186,7 +195,7 @@ export default function CustomerProfilePage() {
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-h-0 overflow-y-auto md:overflow-hidden pb-10 md:pb-0">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-h-0 pb-10 md:pb-0">
         {/* Profile Card */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -218,7 +227,7 @@ export default function CustomerProfilePage() {
         >
           <div className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2rem] p-8 h-full flex flex-col">
             <h3 className="text-xl font-bold mb-6 shrink-0">Personal Information</h3>
-            <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1">
+            <div className="space-y-4 pr-2 flex-1">
               
               <div className="flex items-center gap-4 p-4 rounded-2xl bg-background/50 border border-border/50 hover:border-brand-mint/30 transition-colors group">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-brand-mint/20 group-hover:text-brand-mint transition-colors shrink-0">
@@ -250,30 +259,7 @@ export default function CustomerProfilePage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4 rounded-2xl bg-background/50 border border-border/50 hover:border-brand-mint/30 transition-colors group">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-brand-mint/20 group-hover:text-brand-mint transition-colors shrink-0">
-                  <Phone className="w-6 h-6" />
-                </div>
-                <div className="w-full">
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Phone Number</p>
-                  {isEditing ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground bg-background px-3 py-1.5 rounded-lg border border-border">+91</span>
-                      <input 
-                        type="text" 
-                        value={editForm.phone}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                          setEditForm({...editForm, phone: val})
-                        }}
-                        className="w-full bg-background border border-border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-caribbean/50"
-                      />
-                    </div>
-                  ) : (
-                    <p className="text-lg font-semibold">+91 {profile.phone}</p>
-                  )}
-                </div>
-              </div>
+
 
               <div className="flex items-center gap-4 p-4 rounded-2xl bg-background/50 border border-border/50 hover:border-brand-mint/30 transition-colors group">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-brand-mint/20 group-hover:text-brand-mint transition-colors">

@@ -13,7 +13,7 @@ interface PaginationProps {
 }
 
 export function Pagination({ currentPage, totalPages, onPageChange, itemsPerPage, totalItems, onItemsPerPageChange, itemsPerPageOptions = [10, 20, 50] }: PaginationProps) {
-  if (totalPages <= 1) return null
+  if (totalPages <= 1 && !onItemsPerPageChange) return null
 
   const getPageNumbers = () => {
     const pages = []

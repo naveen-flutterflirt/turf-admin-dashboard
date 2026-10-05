@@ -22,9 +22,28 @@ export default function PaymentsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(8)
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
 
-  const payments = paymentsData?.data || []
-  const stats = paymentsData?.stats || { total_revenue: 0, successful_payments: 0, total_transactions: 0 }
+  // Fetch real, all-time stats from the dashboard API
+  const { data: dashboardData } = useQuery({ queryKey: ['adminDashboard'], queryFn: () => import('@/services/dashboard').then(m => m.dashboardService.getAdminDashboard()) })
 
+  const payments = paymentsData?.data || []
+  const stats = React.useMemo(() => {
+    // Fallback to local computation if dashboard API fails or is loading
+    let revenue = 0;
+    let successful = 0;
+    
+    payments.forEach(payment => {
+      if (payment.payment_status === 'CONFIRMED' || payment.payment_status === 'SUCCESS' || payment.payment_status === 'COMPLETED') {
+        successful++;
+        revenue += parseFloat(payment.amount) || 0;
+      }
+    });
+
+    return {
+      total_revenue: dashboardData?.totalRevenue ?? dashboardData?.total_revenue ?? revenue,
+      successful_payments: dashboardData?.successfulPayments ?? dashboardData?.successful_payments ?? successful,
+      total_transactions: payments.length // Can fallback to payments.length if no total field exists
+    };
+  }, [payments, dashboardData]);
   // Derived state for filtering and pagination
   const filteredPayments = React.useMemo(() => {
     return payments.filter(payment => {
@@ -121,7 +140,7 @@ export default function PaymentsPage() {
                     className="absolute top-12 right-0 w-48 bg-card border border-border rounded-lg shadow-xl z-20 overflow-hidden"
                   >
                     <div className="p-2 space-y-1">
-                      {['ALL', 'CONFIRMED', 'PAYMENT_PENDING', 'CANCELLED'].map(status => (
+                      {['ALL', 'CONFIRMED', 'COMPLETED', 'PAYMENT_PENDING', 'CANCELLED'].map(status => (
                         <div
                           key={status}
                           className={`px-3 py-2 text-sm rounded-md cursor-pointer transition-colors ${statusFilter === status ? 'bg-primary/20 text-primary font-medium' : 'hover:bg-muted'}`}
@@ -144,9 +163,10 @@ export default function PaymentsPage() {
         <CardContent className="p-0 flex flex-col min-h-[400px]">
           <div className="flex-1 w-full overflow-hidden">
             {isLoading ? (
-              <div className="py-10 flex justify-center items-center text-brand-mint">
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-6 h-6 border-2 border-brand-mint border-t-transparent rounded-full" />
-                <span className="ml-3">Loading payments...</span>
+              <div className="w-full p-6 space-y-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="w-full h-16 bg-muted/40 rounded-xl animate-pulse border border-border/50" />
+                ))}
               </div>
             ) : isError ? (
               <div className="py-10 text-center text-red-500">Failed to load payments.</div>
@@ -190,7 +210,7 @@ export default function PaymentsPage() {
                             {new Date(payment.payment_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </TableCell>
                           <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs font-bold whitespace-nowrap ${payment.payment_status === 'CONFIRMED' ? 'text-green-600 bg-green-500/10' :
+                            <span className={`px-2 py-1 rounded-full text-xs font-bold whitespace-nowrap ${(payment.payment_status === 'CONFIRMED' || payment.payment_status === 'COMPLETED' || payment.payment_status === 'SUCCESS') ? 'text-green-600 bg-green-500/10' :
                                 payment.payment_status === 'CANCELLED' ? 'text-red-600 bg-red-500/10' :
                                   'text-yellow-600 bg-yellow-500/10'
                               }`}>
@@ -254,7 +274,7 @@ export default function PaymentsPage() {
               <div className="space-y-1">
                 <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Payment Status</span>
                 <div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${selectedPayment.payment_status === 'CONFIRMED' ? 'text-green-600 bg-green-500/10' :
+                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${(selectedPayment.payment_status === 'CONFIRMED' || selectedPayment.payment_status === 'COMPLETED' || selectedPayment.payment_status === 'SUCCESS') ? 'text-green-600 bg-green-500/10' :
                       selectedPayment.payment_status === 'CANCELLED' ? 'text-red-600 bg-red-500/10' :
                         'text-yellow-600 bg-yellow-500/10'
                     }`}>

@@ -28,8 +28,22 @@ export default function OwnerDashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-brand-mint animate-spin" />
+      <div className="space-y-8 pb-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="h-9 w-48 bg-muted/40 animate-pulse rounded-lg"></div>
+            <div className="h-4 w-64 bg-muted/40 animate-pulse rounded-lg mt-2"></div>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:gap-6 grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl animate-pulse"></div>
+          ))}
+        </div>
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+          <div className="h-[400px] bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl animate-pulse"></div>
+          <div className="h-[400px] bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl animate-pulse"></div>
+        </div>
       </div>
     )
   }
@@ -44,10 +58,10 @@ export default function OwnerDashboardPage() {
   }
 
   const summaryData = [
-    { title: 'Total Turfs', value: dashboardData.total_turfs.toLocaleString(), icon: TentTree, color: 'text-primary', bg: 'bg-primary/10', trend: 'Registered turfs' },
-    { title: 'Occupancy Rate', value: dashboardData.occupancy_rate + '%', icon: Activity, color: 'text-brand-mint', bg: 'bg-brand-mint/10', trend: 'Average occupancy' },
-    { title: 'Total Bookings', value: dashboardData.total_bookings.toLocaleString(), icon: CalendarCheck, color: 'text-purple-500', bg: 'bg-purple-500/10', trend: 'All-time reservations' },
-    { title: 'Total Earnings', value: '₹' + dashboardData.total_earnings.toLocaleString('en-IN'), icon: IndianRupee, color: 'text-green-500', bg: 'bg-green-500/10', trend: 'Total revenue' },
+    { title: 'Total Turfs', value: (dashboardData.total_turfs ?? dashboardData.totalTurfs ?? 0).toLocaleString(), icon: TentTree, color: 'text-primary', bg: 'bg-primary/10', trend: 'Registered turfs' },
+    { title: 'Occupancy Rate', value: (dashboardData.occupancy_rate ?? dashboardData.occupancyRate ?? 0) + '%', icon: Activity, color: 'text-brand-mint', bg: 'bg-brand-mint/10', trend: 'Average occupancy' },
+    { title: 'Total Bookings', value: (dashboardData.total_bookings ?? dashboardData.totalBookings ?? 0).toLocaleString(), icon: CalendarCheck, color: 'text-purple-500', bg: 'bg-purple-500/10', trend: 'All-time reservations' },
+    { title: 'Total Earnings', value: '₹' + (dashboardData.total_earnings ?? dashboardData.totalEarnings ?? 0).toLocaleString('en-IN'), icon: IndianRupee, color: 'text-green-500', bg: 'bg-green-500/10', trend: 'Total revenue' },
   ]
 
   const recentBookings = dashboardData.recent_bookings || []

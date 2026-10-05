@@ -16,11 +16,11 @@ export interface SendBroadcastPayload {
   turf_id: string
   radius_km?: number
   title: string
-  body: string
+  message: string
   customer_ids?: string[]
 }
 
-const API_BASE_URL = 'https://api.eatmeat.live'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const marketingService = {
   getBroadcasts: async (): Promise<BroadcastNotification[]> => {

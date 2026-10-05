@@ -67,7 +67,7 @@ export const customerTurfsService = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       };
-      if (token) {
+      if (token && !token.startsWith('ya29.')) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
@@ -123,7 +123,7 @@ export const customerTurfsService = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       };
-      if (token) {
+      if (token && !token.startsWith('ya29.')) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 

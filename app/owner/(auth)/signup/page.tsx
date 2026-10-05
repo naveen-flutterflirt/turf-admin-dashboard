@@ -82,7 +82,7 @@ function OwnerSignupForm() {
           router.push('/owner/signup?method=google')
         } else {
           localStorage.setItem('owner_token', response.data.token || '')
-          localStorage.setItem('owner_user', JSON.stringify(response.data.data || {}))
+          localStorage.setItem('owner_user', JSON.stringify(response.data.owner || response.data.data || {}))
           router.push('/owner/dashboard')
         }
       } else {
@@ -117,7 +117,7 @@ function OwnerSignupForm() {
           
           // Store token and user data directly, skipping email verification
           localStorage.setItem('owner_token', response.data.token || '')
-          localStorage.setItem('owner_user', JSON.stringify(response.data.data || {}))
+          localStorage.setItem('owner_user', JSON.stringify(response.data.owner || response.data.data || {}))
           router.push('/owner/dashboard')
         } else {
           setServerError(response.data.message || 'Google signup failed')
@@ -312,7 +312,7 @@ function OwnerSignupForm() {
               <Button 
                 type="submit" 
                 disabled={isSubmitting || isGoogleLoading}
-                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-mint to-brand-caribbean text-brand-dark-green hover:from-brand-caribbean hover:to-brand-mint border-none shadow-[0_0_30px_rgba(42,161,152,0.4)] hover:shadow-[0_0_40px_rgba(42,161,152,0.6)] transition-all rounded-2xl mt-8 group" 
+                className="w-full h-14 text-lg mt-8 group" 
               >
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (isGoogleSignup ? 'Complete Profile' : 'Create Account')}
               </Button>

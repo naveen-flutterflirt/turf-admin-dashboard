@@ -47,7 +47,7 @@ export const ownersService = {
     const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
     if (!token) throw new Error("No authorization token found")
 
-    const response = await axios.get(`https://api.eatmeat.live/admin/owners/${owner_id}/account`, {
+    const response = await axios.get(`https://api.eatmeat.live/admin/owners/${owner_id}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }

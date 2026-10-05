@@ -81,7 +81,7 @@ export function CustomerSidebar({ onNavigate, hideCollapseButton = false }: { on
 
       <div className="flex items-center justify-center h-20 border-b border-border/50 py-3 overflow-hidden px-4">
         <motion.img 
-          src="/Logo.png" 
+          src="/images/Logo.png" 
           alt="TurfPlay Logo" 
           className="h-full object-contain cursor-pointer dark:invert-0 dark:hue-rotate-0 invert hue-rotate-180 transition-all duration-300" 
           onClick={() => router.push('/')}

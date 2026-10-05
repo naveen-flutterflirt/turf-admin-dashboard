@@ -2,7 +2,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Users, UserSquare2, TentTree, CalendarCheck, CreditCard, PieChart, Dumbbell, LogOut, MessageSquare, Megaphone, Image as ImageIcon, Settings } from 'lucide-react'
+import { LayoutDashboard, Users, UserSquare2, TentTree, CalendarCheck, CreditCard, Dumbbell, LogOut, MessageSquare, Megaphone, Image as ImageIcon, Settings, Ticket } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 
@@ -13,7 +13,6 @@ const navItems = [
   { name: 'Turfs', href: '/admin/turfs', icon: TentTree },
   { name: 'Bookings', href: '/admin/bookings', icon: CalendarCheck },
   { name: 'Payments', href: '/admin/payments', icon: CreditCard },
-  { name: 'Reports', href: '/admin/reports', icon: PieChart },
   { name: 'Sports', href: '/admin/sports', icon: Dumbbell },
   { name: 'Queries', href: '/admin/queries', icon: MessageSquare },
   { name: 'Broadcasts', href: '/admin/broadcasts', icon: Megaphone },
@@ -74,7 +73,7 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
 
       <div className="flex items-center justify-center h-16 border-b border-border py-2 overflow-hidden">
         <motion.img 
-          src="/Logo.png" 
+          src="/images/Logo.png" 
           alt="Turf Admin Logo" 
           className="h-full object-contain dark:invert-0 dark:hue-rotate-0 invert hue-rotate-180 transition-all duration-300" 
           animate={{ 

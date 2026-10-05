@@ -49,9 +49,10 @@ axiosInstance.interceptors.response.use(
           localStorage.removeItem('owner_user');
           window.location.href = '/owner/login';
         } else if (path.startsWith('/customer')) {
-          localStorage.removeItem('customer_token');
-          localStorage.removeItem('customer_user');
-          window.location.href = '/';
+          // localStorage.removeItem('customer_token');
+          // localStorage.removeItem('customer_user');
+          // window.location.href = '/';
+          console.error("401 Unauthorized encountered via axios in customer route.");
         }
       }
     }

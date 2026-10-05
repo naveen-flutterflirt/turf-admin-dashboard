@@ -114,7 +114,7 @@ export default function BookingsPage() {
                     className="absolute top-12 right-0 w-48 bg-card border border-border rounded-lg shadow-xl z-20 overflow-hidden"
                   >
                     <div className="p-2 space-y-1">
-                      {['ALL', 'CONFIRMED', 'PAYMENT_PENDING', 'CANCELLED'].map(status => (
+                      {['ALL', 'CONFIRMED', 'COMPLETED', 'PAYMENT_PENDING', 'CANCELLED'].map(status => (
                         <div 
                           key={status}
                           className={`px-3 py-2 text-sm rounded-md cursor-pointer transition-colors ${statusFilter === status ? 'bg-primary/20 text-primary font-medium' : 'hover:bg-muted'}`}
@@ -139,9 +139,10 @@ export default function BookingsPage() {
         <CardContent className="p-0 sm:p-6 sm:pt-0 flex flex-col min-h-[400px]">
           <div className="flex-1 w-full overflow-hidden">
             {isLoading ? (
-              <div className="py-10 flex justify-center items-center text-brand-mint">
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-6 h-6 border-2 border-brand-mint border-t-transparent rounded-full" />
-                <span className="ml-3">Loading bookings...</span>
+              <div className="w-full p-6 space-y-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="w-full h-16 bg-muted/40 rounded-xl animate-pulse border border-border/50" />
+                ))}
               </div>
             ) : isError ? (
               <div className="py-10 text-center text-red-500">Failed to load bookings.</div>
@@ -191,7 +192,7 @@ export default function BookingsPage() {
                           </TableCell>
                           <TableCell>
                             <span className={`px-2 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
-                              booking.status === 'CONFIRMED' ? 'text-green-600 bg-green-500/10' : 
+                              (booking.status === 'CONFIRMED' || booking.status === 'COMPLETED' || booking.status === 'SUCCESS') ? 'text-green-600 bg-green-500/10' : 
                               booking.status === 'CANCELLED' ? 'text-red-600 bg-red-500/10' :
                               'text-yellow-600 bg-yellow-500/10'
                             }`}>
@@ -252,7 +253,7 @@ export default function BookingsPage() {
                 <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Status</span>
                 <div>
                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                    selectedBooking.status === 'CONFIRMED' ? 'text-green-600 bg-green-500/10' : 
+                    (selectedBooking.status === 'CONFIRMED' || selectedBooking.status === 'COMPLETED' || selectedBooking.status === 'SUCCESS') ? 'text-green-600 bg-green-500/10' : 
                     selectedBooking.status === 'CANCELLED' ? 'text-red-600 bg-red-500/10' :
                     'text-yellow-600 bg-yellow-500/10'
                   }`}>

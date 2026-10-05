@@ -11,6 +11,7 @@ import { marketingService } from '@/services/marketing'
 import { turfsService } from '@/services/turfs'
 import { usersService } from '@/services/users'
 import { toast } from 'sonner'
+import { Pagination } from '@/components/ui/pagination'
 
 export default function BroadcastsPage() {
   const queryClient = useQueryClient()
@@ -64,6 +65,10 @@ export default function BroadcastsPage() {
 
   const [activeTab, setActiveTab] = useState<'send' | 'history'>('send')
 
+  // Pagination state for history tab
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
     if (!turfId || !title || !body) {
@@ -80,10 +85,15 @@ export default function BroadcastsPage() {
       turf_id: turfId,
       radius_km: radiusKm ? Number(radiusKm) : undefined,
       title,
-      body,
+      message: body,
       customer_ids: selectedCustomerIds.length > 0 ? selectedCustomerIds : undefined
     })
   }
+
+  // Calculate paginated history
+  const totalPages = Math.ceil(broadcasts.length / itemsPerPage)
+  const validCurrentPage = Math.min(currentPage, Math.max(1, totalPages))
+  const paginatedBroadcasts = broadcasts.slice((validCurrentPage - 1) * itemsPerPage, validCurrentPage * itemsPerPage)
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto p-4 md:p-0">
@@ -253,66 +263,83 @@ export default function BroadcastsPage() {
                     <p>No broadcasts sent yet.</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-border">
-                    <AnimatePresence>
-                      {broadcasts.map((broadcast) => {
-                        const timeDisplay = new Date(broadcast.created_at).toLocaleString('en-IN', {
-                          day: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric', hour12: true
-                        })
+                  <div className="flex flex-col h-full">
+                    <div className="divide-y divide-border flex-1">
+                      <AnimatePresence>
+                        {paginatedBroadcasts.map((broadcast) => {
+                          const timeDisplay = new Date(broadcast.created_at).toLocaleString('en-IN', {
+                            day: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric', hour12: true
+                          })
 
-                        return (
-                          <motion.div
-                            key={broadcast.id}
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="p-5 hover:bg-muted/20 transition-colors"
-                          >
-                            <div className="flex justify-between items-start gap-4">
-                              <div className="flex-1 space-y-2">
-                                <h4 className="text-base font-bold text-foreground">
-                                  {broadcast.title}
-                                </h4>
-                                <p className="text-sm text-foreground/80 leading-relaxed">
-                                  {broadcast.message}
-                                </p>
+                          return (
+                            <motion.div
+                              key={broadcast.id}
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="p-5 hover:bg-muted/20 transition-colors"
+                            >
+                              <div className="flex justify-between items-start gap-4">
+                                <div className="flex-1 space-y-2">
+                                  <h4 className="text-base font-bold text-foreground">
+                                    {broadcast.title}
+                                  </h4>
+                                  <p className="text-sm text-foreground/80 leading-relaxed">
+                                    {broadcast.message}
+                                  </p>
 
-                                <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-border/50">
-                                  <span className="flex items-center gap-1.5 text-xs font-medium text-brand-caribbean bg-brand-caribbean/10 px-2.5 py-1 rounded-full">
-                                    <MapPin className="w-3.5 h-3.5" />
-                                    {broadcast.turf_name}
-                                  </span>
-                                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground max-w-xs truncate" title={broadcast.targeted_names}>
-                                    <Users className="w-3.5 h-3.5 flex-shrink-0" />
-                                    <span className="truncate">
-                                      {broadcast.users_targeted} targeted {broadcast.targeted_names ? `(${broadcast.targeted_names})` : ''}
+                                  <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-border/50">
+                                    <span className="flex items-center gap-1.5 text-xs font-medium text-brand-caribbean bg-brand-caribbean/10 px-2.5 py-1 rounded-full">
+                                      <MapPin className="w-3.5 h-3.5" />
+                                      {broadcast.turf_name || 'All Turfs'}
                                     </span>
-                                  </span>
-                                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-mint"></span>
-                                    {broadcast.radius_km}km radius
-                                  </span>
-                                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
-                                    <Clock className="w-3.5 h-3.5" />
-                                    {timeDisplay}
-                                  </span>
+                                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground max-w-xs truncate" title={broadcast.targeted_names}>
+                                      <Users className="w-3.5 h-3.5 flex-shrink-0" />
+                                      <span className="truncate">
+                                        {broadcast.users_targeted ?? 'Unknown'} targeted {broadcast.targeted_names ? `(${broadcast.targeted_names})` : ''}
+                                      </span>
+                                    </span>
+                                    {broadcast.radius_km && (
+                                      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-brand-mint"></span>
+                                        {broadcast.radius_km}km radius
+                                      </span>
+                                    )}
+                                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
+                                      <Clock className="w-3.5 h-3.5" />
+                                      {timeDisplay}
+                                    </span>
+                                  </div>
                                 </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-red-500/80 hover:text-red-500 hover:bg-red-500/10 transition-colors flex-shrink-0"
+                                  onClick={() => deleteBroadcastMutation.mutate(broadcast.id)}
+                                  disabled={deleteBroadcastMutation.isPending}
+                                  title="Delete Broadcast Record"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-red-500/80 hover:text-red-500 hover:bg-red-500/10 transition-colors flex-shrink-0"
-                                onClick={() => deleteBroadcastMutation.mutate(broadcast.id)}
-                                disabled={deleteBroadcastMutation.isPending}
-                                title="Delete Broadcast Record"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </motion.div>
-                        )
-                      })}
-                    </AnimatePresence>
+                            </motion.div>
+                          )
+                        })}
+                      </AnimatePresence>
+                    </div>
+                    {broadcasts.length > 0 && (
+                      <div className="px-6 py-4 border-t border-border bg-muted/10">
+                        <Pagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={setCurrentPage}
+                          itemsPerPage={itemsPerPage}
+                          totalItems={broadcasts.length}
+                          onItemsPerPageChange={() => {}}
+                          itemsPerPageOptions={[5]}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
