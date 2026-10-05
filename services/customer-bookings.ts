@@ -8,6 +8,7 @@ export interface CreateBookingPayload {
   sport_id: string;
   date: string;
   time_slots: TimeSlot[];
+  coupon_code?: string;
 }
 
 export interface VerifyPaymentPayload {

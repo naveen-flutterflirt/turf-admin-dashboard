@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { customerTurfsService, TurfData } from '@/services/customer-turfs'
 import { customerBookingsService } from '@/services/customer-bookings'
-import { MapPin, Navigation, IndianRupee, Clock, Search, Filter, X, Calendar, ChevronDown, Star, ChevronRight, ChevronLeft, XCircle, SlidersHorizontal, Activity, Users, Heart } from 'lucide-react'
+import { couponService } from '@/services/coupon'
+import { MapPin, Navigation, IndianRupee, Clock, Search, Filter, X, Calendar, ChevronDown, Star, ChevronRight, ChevronLeft, XCircle, SlidersHorizontal, Activity, Users, Heart, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 // Industry standard Haversine formula for calculating distance client-side as fallback
@@ -151,6 +152,15 @@ export default function CustomerTurfsPage() {
   const [isBooking, setIsBooking] = useState(false)
   const [bookingMessage, setBookingMessage] = useState('')
 
+  // Coupon States
+  const [couponCode, setCouponCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null)
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false)
+  const [couponError, setCouponError] = useState('')
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([])
+  const [isLoadingCoupons, setIsLoadingCoupons] = useState(false)
+  const [showCouponsList, setShowCouponsList] = useState(false)
+
   // Generate next 7 days for the date picker
   const upcomingDates = Array.from({length: 7}).map((_, i) => {
     const d = new Date()
@@ -187,10 +197,6 @@ export default function CustomerTurfsPage() {
         res.data.forEach((apiSlot: any) => {
           if (!apiSlot.start || !apiSlot.end) return;
           
-          // "if time is passed then it should not show the slots" -> user updated: 
-          // "if time was end then sho like or unavailable... if booked then show booke status like red shadow"
-          // So we don't return/skip them anymore, we just let them flow through and handle in UI.
-          
           const startHour = parseInt(apiSlot.start.split(':')[0]);
           const startMin = parseInt(apiSlot.start.split(':')[1]);
           const endHour = parseInt(apiSlot.end.split(':')[0]);
@@ -224,6 +230,47 @@ export default function CustomerTurfsPage() {
     fetchSlots();
   }, [selectedTurf, selectedSport, selectedDate]);
 
+  useEffect(() => {
+    if (bookingStep === 2 && selectedTurf) {
+      const fetchCoupons = async () => {
+        setIsLoadingCoupons(true)
+        try {
+          const res = await couponService.getAvailableCoupons(selectedTurf.id)
+          setAvailableCoupons(res || [])
+        } catch (err) {
+          console.error("Failed to fetch coupons", err)
+        } finally {
+          setIsLoadingCoupons(false)
+        }
+      }
+      fetchCoupons()
+    }
+  }, [bookingStep, selectedTurf])
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return
+    if (!selectedSlot || !selectedTurf) return
+    
+    setIsValidatingCoupon(true)
+    setCouponError('')
+    try {
+      const res = await couponService.validateCoupon(couponCode, selectedTurf.id, selectedSlot.price)
+      setAppliedCoupon(res)
+      setCouponCode('')
+    } catch (err: any) {
+      setCouponError(err.message || "Invalid coupon code")
+      setAppliedCoupon(null)
+    } finally {
+      setIsValidatingCoupon(false)
+    }
+  }
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponError('')
+    setCouponCode('')
+  }
+
   const loadRazorpay = () => {
     return new Promise((resolve) => {
       const script = document.createElement('script')
@@ -249,7 +296,8 @@ export default function CustomerTurfsPage() {
       turf_id: selectedTurf.id,
       sport_id: selectedSport,
       date: formattedDate,
-      time_slots: [{ start_time: selectedSlot.start_time, end_time: selectedSlot.end_time }]
+      time_slots: [{ start_time: selectedSlot.start_time, end_time: selectedSlot.end_time }],
+      coupon_code: appliedCoupon?.code
     })
     
     setIsBooking(false)
@@ -861,10 +909,135 @@ export default function CustomerTurfsPage() {
                         <span className="font-medium text-right">1 Hour</span>
                       </div>
                       <div className="flex justify-between items-center text-sm border-t border-border pt-4 mt-2">
+                        <span className="font-medium">Subtotal</span>
+                        <span className="font-medium">₹{selectedSlot?.price}</span>
+                      </div>
+                      {appliedCoupon && (
+                        <div className="flex justify-between items-center text-sm text-brand-caribbean">
+                          <span className="font-medium">Discount ({appliedCoupon.code})</span>
+                          <span className="font-bold">-₹{appliedCoupon.discount_amount}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center text-base border-t border-border pt-4 mt-2">
                         <span className="font-bold">Total Amount</span>
-                        <span className="font-bold text-brand-caribbean text-lg">₹{selectedSlot?.price}</span>
+                        <span className="font-bold text-brand-caribbean text-xl">₹{appliedCoupon ? appliedCoupon.final_total : selectedSlot?.price}</span>
                       </div>
                     </div>
+                    
+                    {/* Coupon Section */}
+                    {!appliedCoupon ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <input
+                              type="text"
+                              placeholder="Enter coupon code"
+                              value={couponCode}
+                              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                              className="w-full bg-background border border-border rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-brand-caribbean transition-colors"
+                            />
+                          </div>
+                          <Button 
+                            id="apply-coupon-btn"
+                            onClick={handleApplyCoupon} 
+                            disabled={!couponCode || isValidatingCoupon}
+                            variant="secondary"
+                            className="rounded-xl h-[46px] bg-brand-caribbean/10 text-brand-caribbean hover:bg-brand-caribbean/20 font-bold"
+                          >
+                            {isValidatingCoupon ? 'Wait..' : 'Apply'}
+                          </Button>
+                        </div>
+                        {couponError && <p className="text-red-500 text-xs px-1">{couponError}</p>}
+                        
+                        <button 
+                          type="button"
+                          onClick={() => setShowCouponsList(!showCouponsList)}
+                          className="text-xs font-semibold text-brand-caribbean hover:underline px-1 flex items-center gap-1"
+                        >
+                          {showCouponsList ? 'Hide Available Coupons' : 'View Available Coupons'}
+                          <ChevronDown className={`w-3 h-3 transition-transform ${showCouponsList ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        <AnimatePresence>
+                          {showCouponsList && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="bg-muted/30 border border-border rounded-xl p-3 space-y-3 max-h-48 overflow-y-auto custom-scrollbar">
+                                {isLoadingCoupons ? (
+                                  <div className="text-center py-4 text-muted-foreground text-xs">Loading coupons...</div>
+                                ) : availableCoupons.length === 0 ? (
+                                  <div className="text-center py-4 text-muted-foreground text-xs">No coupons available right now.</div>
+                                ) : (
+                                  availableCoupons.map(coupon => {
+                                    const subtotal = selectedSlot?.price || 0;
+                                    const minAmount = coupon.min_booking_amount ? parseFloat(coupon.min_booking_amount) : 0;
+                                    const isLocked = subtotal < minAmount;
+
+                                    return (
+                                      <div key={coupon.id} className={`flex justify-between items-center border rounded-lg p-2.5 shadow-sm transition-colors ${isLocked ? 'bg-muted/10 border-border/30 opacity-70' : 'bg-background border-border/50 hover:border-brand-caribbean/30'}`}>
+                                        <div>
+                                          <div className={`font-bold text-sm flex items-center gap-1 ${isLocked ? 'text-muted-foreground' : 'text-brand-caribbean'}`}>
+                                            {coupon.code}
+                                            {isLocked && <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground font-medium">Locked</span>}
+                                          </div>
+                                          <div className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                                            {coupon.discount_type === 'FLAT' ? `Flat ₹${coupon.discount_value} OFF` : `${coupon.discount_value}% OFF up to ₹${coupon.max_discount_amount || 'unlimited'}`}
+                                            {coupon.min_booking_amount ? ` on min spend ₹${coupon.min_booking_amount}` : ''}
+                                          </div>
+                                          {isLocked && (
+                                            <div className="text-[9px] text-red-400 font-bold mt-1">
+                                              Subtotal is ₹{minAmount - subtotal} short of min spend.
+                                            </div>
+                                          )}
+                                        </div>
+                                        <button
+                                          type="button"
+                                          disabled={isLocked}
+                                          onClick={() => {
+                                            if (isLocked) return;
+                                            setCouponCode(coupon.code);
+                                            setTimeout(() => {
+                                              const applyBtn = document.getElementById('apply-coupon-btn');
+                                              if (applyBtn) applyBtn.click();
+                                            }, 50)
+                                          }}
+                                          className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isLocked ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-brand-caribbean/10 text-brand-caribbean hover:bg-brand-caribbean/20'}`}
+                                        >
+                                          {isLocked ? 'Locked' : 'Apply'}
+                                        </button>
+                                      </div>
+                                    )
+                                  })
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ) : (
+                      <div className="bg-brand-caribbean/10 border border-brand-caribbean/20 rounded-xl p-3 flex justify-between items-center relative overflow-hidden">
+                        <div className="absolute -right-4 -bottom-4 opacity-10">
+                          <Tag className="w-16 h-16 text-brand-caribbean" />
+                        </div>
+                        <div className="flex items-center gap-3 text-brand-caribbean relative z-10">
+                          <div className="bg-brand-caribbean/20 p-2 rounded-lg">
+                            <Tag className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold tracking-wide">{appliedCoupon.code} Applied</p>
+                            <p className="text-xs opacity-90 font-medium">You saved ₹{appliedCoupon.discount_amount} on this booking!</p>
+                          </div>
+                        </div>
+                        <button onClick={handleRemoveCoupon} className="text-red-500 hover:text-red-600 p-2 rounded-full hover:bg-red-500/10 transition-colors relative z-10">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                     
                     {bookingMessage && (
                       <div className={`p-4 rounded-xl text-sm font-medium ${bookingMessage.includes('success') ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
