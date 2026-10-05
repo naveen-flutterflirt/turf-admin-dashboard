@@ -181,6 +181,58 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
     }
   }
 
+  const [isCapturingLocation, setIsCapturingLocation] = useState(false)
+
+  const handleCaptureLocation = () => {
+    if (!('geolocation' in navigator)) {
+      toast.error('Geolocation is not supported by your browser.')
+      return
+    }
+
+    setIsCapturingLocation(true)
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+          const data = await response.json()
+          
+          if (data && data.address) {
+            const addr = data.address
+            const streetAddressParts = []
+            if (addr.road || addr.suburb || addr.neighbourhood) {
+                streetAddressParts.push(addr.road || addr.suburb || addr.neighbourhood)
+            }
+            if (addr.city_district) {
+                streetAddressParts.push(addr.city_district)
+            }
+            const fullAddress = streetAddressParts.length > 0 ? streetAddressParts.join(', ') : data.display_name.split(',').slice(0, 2).join(', ')
+
+            setValue('address', fullAddress || '', { shouldValidate: true })
+            setValue('city', addr.city || addr.town || addr.village || addr.state_district || '', { shouldValidate: true })
+            setValue('state', addr.state || '', { shouldValidate: true })
+            setValue('pincode', addr.postcode || '', { shouldValidate: true })
+            
+            toast.success('Location captured successfully!')
+          } else {
+            toast.error('Could not determine address from location.')
+          }
+        } catch (error) {
+          console.error(error)
+          toast.error('Failed to fetch address from location.')
+        } finally {
+          setIsCapturingLocation(false)
+        }
+      },
+      (error) => {
+        console.error(error)
+        toast.error('Failed to get your location. Please ensure location permissions are granted.')
+        setIsCapturingLocation(false)
+      },
+      { enableHighAccuracy: true }
+    )
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm overflow-hidden">
@@ -234,7 +286,20 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
 
           {/* Section: Location */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold border-b border-border/50 pb-2">Location</h3>
+            <div className="flex items-center justify-between border-b border-border/50 pb-2">
+              <h3 className="text-lg font-bold">Location</h3>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                onClick={handleCaptureLocation} 
+                disabled={isCapturingLocation} 
+                className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+              >
+                {isCapturingLocation ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <MapPin className="w-4 h-4 mr-2" />}
+                Use Current Location
+              </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="space-y-2 lg:col-span-3">
                 <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase">Street Address</label>
