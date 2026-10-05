@@ -59,21 +59,29 @@ export default function CustomerCommunityPage() {
     try {
       const token = localStorage.getItem('customer_token')
       if (token) {
-        // Parse JWT payload safely
-        const base64Url = token.split('.')[1];
-        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        while (base64.length % 4 !== 0) {
-          base64 += '=';
+        let userId = 'user';
+        if (token.startsWith('ya29.')) {
+          userId = 'google-user';
+        } else {
+          // Parse JWT payload safely
+          const base64Url = token.split('.')[1];
+          if (base64Url) {
+            let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            while (base64.length % 4 !== 0) {
+              base64 += '=';
+            }
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            const decoded = JSON.parse(jsonPayload);
+            userId = decoded.id || decoded.userId || decoded.sub;
+          }
         }
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        const decoded = JSON.parse(jsonPayload);
         
         const userStr = localStorage.getItem('customer_user')
         const storedUser = userStr ? JSON.parse(userStr) : {}
         
-        setCurrentUser({ ...storedUser, id: decoded.id || decoded.userId || decoded.sub })
+        setCurrentUser({ ...storedUser, id: userId })
       }
     } catch(e) {
       console.error('Error parsing token:', e)
@@ -135,6 +143,11 @@ export default function CustomerCommunityPage() {
         socketUrl = `${url.protocol}//${url.host}`
       } catch (e) {
         socketUrl = apiUrl.split('/api')[0]
+      }
+      
+      // Do not connect to socket if it's a mock Google session
+      if (token && token.startsWith('ya29.')) {
+        return;
       }
       
       const socket = io(socketUrl, {
@@ -360,48 +373,61 @@ export default function CustomerCommunityPage() {
               ) : filteredFeed.length === 0 ? (
                 <EmptyState icon={Users} title="No Active Broadcasts" description="There are no broadcasts matching your search right now." />
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <motion.div 
+                  initial="hidden"
+                  animate="visible"
+                  variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                >
                   {filteredFeed.map((broadcast: any) => {
                     const isOwnBroadcast = myBroadcasts.some((b: any) => b.id === broadcast.id);
                     
                     return (
-                    <Card key={broadcast.id} className="border border-border/40 bg-card/50 backdrop-blur-sm rounded-2xl hover:border-brand-caribbean/30 transition-all overflow-hidden flex flex-col">
-                      <div className="p-5 flex-1">
-                        <div className="flex justify-between items-start mb-3">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-caribbean/10 text-brand-caribbean text-xs font-bold">
-                            <Calendar className="w-3.5 h-3.5" /> {broadcast.play_date || 'TBD'}
-                          </span>
-                          <span className="text-xs font-medium text-muted-foreground bg-secondary/50 px-2 py-1 rounded-full flex items-center gap-1">
-                            <Users className="w-3 h-3" /> {broadcast.players_needed ? `Need ${broadcast.players_needed}` : 'Any'}
-                          </span>
+                    <motion.div 
+                      key={broadcast.id}
+                      variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } } }}
+                      whileHover={{ y: -5 }}
+                      className="h-full"
+                    >
+                      <Card className="border border-border/40 bg-card/50 backdrop-blur-sm rounded-2xl hover:border-brand-caribbean/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-brand-caribbean/20 transition-all duration-300 overflow-hidden flex flex-col h-full group">
+                        <div className="p-5 flex-1 relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-caribbean/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-brand-caribbean/10 transition-colors duration-500"></div>
+                          <div className="flex justify-between items-start mb-3 relative z-10">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-caribbean/10 text-brand-caribbean text-xs font-bold">
+                              <Calendar className="w-3.5 h-3.5" /> {broadcast.play_date || 'TBD'}
+                            </span>
+                            <span className="text-xs font-medium text-muted-foreground bg-secondary/50 px-2 py-1 rounded-full flex items-center gap-1">
+                              <Users className="w-3 h-3" /> {broadcast.players_needed ? `Need ${broadcast.players_needed}` : 'Any'}
+                            </span>
+                          </div>
+                          <p className="font-semibold text-foreground text-lg mb-2 line-clamp-2 relative z-10">{broadcast.message}</p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-4 relative z-10">
+                            <Clock className="w-4 h-4" /> {broadcast.start_time || 'TBA'} - {broadcast.end_time || 'TBA'}
+                          </div>
                         </div>
-                        <p className="font-semibold text-foreground text-lg mb-2 line-clamp-2">{broadcast.message}</p>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-4">
-                          <Clock className="w-4 h-4" /> {broadcast.start_time || 'TBA'} - {broadcast.end_time || 'TBA'}
+                        <div className="p-3 border-t border-border/40 bg-secondary/5 group-hover:bg-brand-caribbean/5 transition-colors duration-300">
+                          {isOwnBroadcast ? (
+                             <Button 
+                               onClick={() => setBroadcastToDelete(broadcast.id)}
+                               className="w-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all"
+                             >
+                               <Trash2 className="w-4 h-4 mr-2" /> Delete Broadcast
+                             </Button>
+                          ) : (
+                            <Button 
+                              onClick={() => joinBroadcastMutation.mutate(broadcast.id)}
+                              disabled={joinBroadcastMutation.isPending}
+                              className="w-full bg-brand-mint/10 text-brand-mint hover:bg-brand-mint hover:text-white rounded-xl transition-all font-semibold shadow-none hover:shadow-lg hover:shadow-brand-mint/20"
+                            >
+                              Request to Join
+                            </Button>
+                          )}
                         </div>
-                      </div>
-                      <div className="p-3 border-t border-border/40 bg-secondary/10">
-                        {isOwnBroadcast ? (
-                           <Button 
-                             onClick={() => setBroadcastToDelete(broadcast.id)}
-                             className="w-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all"
-                           >
-                             <Trash2 className="w-4 h-4 mr-2" /> Delete Broadcast
-                           </Button>
-                        ) : (
-                          <Button 
-                            onClick={() => joinBroadcastMutation.mutate(broadcast.id)}
-                            disabled={joinBroadcastMutation.isPending}
-                            className="w-full bg-brand-mint/10 text-brand-mint hover:bg-brand-mint hover:text-white rounded-xl transition-all font-semibold"
-                          >
-                            Request to Join
-                          </Button>
-                        )}
-                      </div>
-                    </Card>
+                      </Card>
+                    </motion.div>
                     )
                   })}
-                </div>
+                </motion.div>
               )}
             </div>
           )}
@@ -416,29 +442,41 @@ export default function CustomerCommunityPage() {
                 ) : myBroadcasts.length === 0 ? (
                   <EmptyState icon={Trophy} title="No Broadcasts" description="You haven't created any broadcasts yet." />
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <motion.div 
+                    initial="hidden"
+                    animate="visible"
+                    variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  >
                     {myBroadcasts.map((broadcast: any) => (
-                      <Card key={broadcast.id} className="border border-border/40 bg-card rounded-2xl relative overflow-hidden group">
-                        <div className="p-5">
-                          <div className="flex justify-between items-start mb-3">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-caribbean/10 text-brand-caribbean text-xs font-bold">
-                              <Calendar className="w-3.5 h-3.5" /> {broadcast.play_date}
-                            </span>
-                            <button 
-                              onClick={() => setBroadcastToDelete(broadcast.id)}
-                              className="text-red-400 hover:text-red-500 hover:bg-red-500/10 p-1.5 rounded-full transition-colors opacity-0 group-hover:opacity-100"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                      <motion.div
+                        key={broadcast.id}
+                        variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 24 } } }}
+                        whileHover={{ y: -5 }}
+                      >
+                        <Card className="border border-border/40 bg-card rounded-2xl relative overflow-hidden group hover:border-brand-caribbean/40 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-brand-caribbean/20 transition-all duration-300">
+                          <div className="absolute inset-0 bg-gradient-to-br from-brand-caribbean/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                          <div className="p-5 relative z-10">
+                            <div className="flex justify-between items-start mb-3">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-caribbean/10 text-brand-caribbean text-xs font-bold shadow-sm">
+                                <Calendar className="w-3.5 h-3.5" /> {broadcast.play_date}
+                              </span>
+                              <button 
+                                onClick={() => setBroadcastToDelete(broadcast.id)}
+                                className="text-red-400 hover:text-white hover:bg-red-500 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 shadow-sm"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <p className="font-semibold text-foreground text-lg mb-2">{broadcast.message}</p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Clock className="w-4 h-4" /> {broadcast.start_time} - {broadcast.end_time}
+                            </div>
                           </div>
-                          <p className="font-semibold text-foreground text-lg mb-2">{broadcast.message}</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Clock className="w-4 h-4" /> {broadcast.start_time} - {broadcast.end_time}
-                          </div>
-                        </div>
-                      </Card>
+                        </Card>
+                      </motion.div>
                     ))}
-                  </div>
+                  </motion.div>
                 )}
               </div>
 

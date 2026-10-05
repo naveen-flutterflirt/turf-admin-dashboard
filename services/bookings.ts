@@ -26,13 +26,20 @@ export const bookingsService = {
       if (!token) throw new Error("No authorization token found")
 
       const response = await axios.get(`${API_URL}/admin/bookings`, {
+        params: { page: 1, limit: 100 },
         headers: {
           Authorization: `Bearer ${token}`
         }
       })
 
-      if (response.data && response.data.success && response.data.data) {
-        return response.data.data
+      if (response.data) {
+        if (response.data.success && response.data.data) {
+          return response.data.data
+        } else if (response.data.bookings) {
+          return response.data.bookings
+        } else if (Array.isArray(response.data)) {
+          return response.data
+        }
       }
       return []
     } catch (error) {

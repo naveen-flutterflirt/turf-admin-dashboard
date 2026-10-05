@@ -42,7 +42,7 @@ export default function LandingPage() {
         ======================== */}
         <nav className="absolute top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
           <div className="flex items-center gap-2 z-50">
-            <img src="/Logo.png" alt="TurfPlay Logo" className="h-8 sm:h-12 object-contain drop-shadow-md cursor-pointer" />
+            <img src="/images/Logo.png" alt="TurfPlay Logo" className="h-8 sm:h-12 object-contain drop-shadow-md cursor-pointer" />
           </div>
 
           {/* Desktop Nav */}
@@ -327,7 +327,7 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-5 gap-y-12 gap-x-6 sm:gap-12 mb-16">
 
             <div className="col-span-2">
-              <img src="/Logo.png" alt="TurfPlay Logo" className="h-10 object-contain mb-6 drop-shadow-md" />
+              <img src="/images/Logo.png" alt="TurfPlay Logo" className="h-10 object-contain mb-6 drop-shadow-md" />
               <p className="text-white/60 text-sm leading-relaxed mb-8 max-w-sm">
                 The ultimate premium platform to book sports venues, connect with local athletes, and manage your games effortlessly.
               </p>

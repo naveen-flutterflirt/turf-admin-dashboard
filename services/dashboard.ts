@@ -13,24 +13,38 @@ export interface DashboardRecentBooking {
 
 export interface DashboardMetrics {
   total_earnings: number;
+  totalEarnings?: number;
   total_bookings: number;
+  totalBookings?: number;
   total_turfs: number;
+  totalTurfs?: number;
   occupancy_rate: number;
+  occupancyRate?: number;
   recent_bookings: DashboardRecentBooking[];
   weekly_earnings: { label: string, value: number }[];
 }
 
 export interface AdminDashboardMetrics {
   totalCustomers: number;
+  total_customers?: number;
   totalOwners: number;
+  total_owners?: number;
   activeTurfs: number;
+  active_turfs?: number;
   pendingTurfs: number;
+  pending_turfs?: number;
   totalBookings: number;
+  total_bookings?: number;
   todaysActivity: number;
+  todays_activity?: number;
   totalRevenue: number;
+  total_revenue?: number;
   successfulPayments: number;
+  successful_payments?: number;
   recentBookings: any[];
+  recent_bookings?: any[];
   recentTransactions: any[];
+  recent_transactions?: any[];
 }
 
 export const dashboardService = {

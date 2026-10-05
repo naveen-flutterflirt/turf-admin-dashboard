@@ -2,7 +2,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, TentTree, CalendarCheck, UserSquare2, LogOut, MessageSquareText } from 'lucide-react'
+import { LayoutDashboard, TentTree, CalendarCheck, UserSquare2, LogOut, MessageSquareText, Ticket } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 
@@ -10,6 +10,7 @@ const navItems = [
   { name: 'Dashboard', href: '/owner/dashboard', icon: LayoutDashboard },
   { name: 'My Turfs', href: '/owner/turfs', icon: TentTree },
   { name: 'Bookings', href: '/owner/bookings', icon: CalendarCheck },
+  { name: 'Coupons', href: '/owner/coupons', icon: Ticket },
   { name: 'Support', href: '/owner/queries', icon: MessageSquareText },
   { name: 'Profile', href: '/owner/profile', icon: UserSquare2 },
 ]
@@ -82,7 +83,7 @@ export function OwnerSidebar({ onNavigate, hideCollapseButton = false }: { onNav
 
       <div className="flex items-center justify-center h-20 border-b border-border/50 py-3 overflow-hidden px-4">
         <motion.img 
-          src="/Logo.png" 
+          src="/images/Logo.png" 
           alt="Turf Owner Logo" 
           className="h-full object-contain cursor-pointer dark:invert-0 dark:hue-rotate-0 invert hue-rotate-180 transition-all duration-300" 
           onClick={() => router.push('/owner/dashboard')}

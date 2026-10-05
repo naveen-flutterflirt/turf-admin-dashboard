@@ -50,7 +50,7 @@ function VerifyEmailForm() {
       if (response.data && response.data.success) {
         // Store token and user data on successful verification
         localStorage.setItem('owner_token', response.data.token || '')
-        localStorage.setItem('owner_user', JSON.stringify(response.data.data || {}))
+        localStorage.setItem('owner_user', JSON.stringify(response.data.owner || response.data.data || {}))
         
         setSuccessMsg('Email verified successfully! Redirecting to dashboard...')
         setTimeout(() => {
@@ -198,7 +198,7 @@ function VerifyEmailForm() {
               <Button 
                 type="submit" 
                 disabled={isSubmitting || !!successMsg}
-                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-mint to-brand-caribbean text-brand-dark-green hover:from-brand-caribbean hover:to-brand-mint border-none shadow-[0_0_30px_rgba(42,161,152,0.4)] hover:shadow-[0_0_40px_rgba(42,161,152,0.6)] transition-all rounded-2xl mt-6 group" 
+                className="w-full h-14 text-lg mt-6 group" 
               >
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify Account'}
               </Button>

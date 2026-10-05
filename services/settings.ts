@@ -16,7 +16,15 @@ export const settingsService = {
     // Using relative URL leverages the securely configured baseURL
     const response = await axios.get('/customer/app-settings')
     if (response.data && response.data.success) {
-      return response.data.data
+      return response.data.data || {
+        latest_android_version: '1.0.0',
+        latest_ios_version: '1.0.0',
+        force_update: false,
+        normal_update: false,
+        update_message: '',
+        play_store_url: '',
+        app_store_url: ''
+      }
     }
     throw new Error(response.data?.message || "Failed to fetch settings")
   },

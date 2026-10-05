@@ -38,7 +38,7 @@ export default function QueriesPage() {
   // Search, Filter, Pagination state
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 8
+  const [itemsPerPage, setItemsPerPage] = useState(8)
 
   const replyMutation = useMutation({
     mutationFn: (data: { id: string, admin_reply: string, status: string }) => queriesService.replyQuery(data.id, data.admin_reply, data.status),
@@ -65,9 +65,9 @@ export default function QueriesPage() {
     })
   }, [queries, searchTerm])
 
-  const totalQueryPages = Math.ceil(filteredQueries.length / ITEMS_PER_PAGE)
+  const totalQueryPages = Math.ceil(filteredQueries.length / itemsPerPage)
   const validCurrentPage = Math.min(currentPage, Math.max(1, totalQueryPages))
-  const paginatedQueries = filteredQueries.slice((validCurrentPage - 1) * ITEMS_PER_PAGE, validCurrentPage * ITEMS_PER_PAGE)
+  const paginatedQueries = filteredQueries.slice((validCurrentPage - 1) * itemsPerPage, validCurrentPage * itemsPerPage)
 
   // Derived state for filtering and pagination (Customer Feedbacks)
   const filteredFeedbacks = useMemo(() => {
@@ -80,9 +80,9 @@ export default function QueriesPage() {
     })
   }, [customerFeedbacks, searchTerm])
   
-  const totalFeedbackPages = Math.ceil(filteredFeedbacks.length / ITEMS_PER_PAGE)
+  const totalFeedbackPages = Math.ceil(filteredFeedbacks.length / itemsPerPage)
   const validFeedbackPage = Math.min(currentPage, Math.max(1, totalFeedbackPages))
-  const paginatedFeedbacks = filteredFeedbacks.slice((validFeedbackPage - 1) * ITEMS_PER_PAGE, validFeedbackPage * ITEMS_PER_PAGE)
+  const paginatedFeedbacks = filteredFeedbacks.slice((validFeedbackPage - 1) * itemsPerPage, validFeedbackPage * itemsPerPage)
 
   const handleReplySubmit = () => {
     if (!selectedQuery) return
@@ -147,9 +147,10 @@ export default function QueriesPage() {
         <CardContent className="p-0 sm:p-6 sm:pt-0 flex flex-col min-h-[400px]">
           <div className="flex-1 w-full overflow-hidden">
             {isLoading ? (
-              <div className="py-10 text-center text-muted-foreground flex justify-center items-center gap-2">
-                <span className="animate-spin rounded-full h-5 w-5 border-2 border-brand-mint/20 border-t-brand-mint" />
-                Loading {activeTab === 'owner' ? 'queries' : 'feedbacks'}...
+              <div className="w-full p-6 space-y-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="w-full h-16 bg-muted/40 rounded-xl animate-pulse border border-border/50" />
+                ))}
               </div>
             ) : isError ? (
               <div className="py-10 text-center text-red-500">Failed to load {activeTab === 'owner' ? 'queries' : 'feedbacks'}.</div>
@@ -259,6 +260,10 @@ export default function QueriesPage() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={activeTab === 'owner' ? filteredQueries.length : filteredFeedbacks.length}
+                onItemsPerPageChange={(num) => { setItemsPerPage(num); setCurrentPage(1); }}
+                itemsPerPageOptions={[5, 8, 10, 20, 50]}
               />
             </div>
           )}

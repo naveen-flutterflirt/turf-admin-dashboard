@@ -50,7 +50,7 @@ export default function OwnerLoginPage() {
           router.push('/owner/signup?method=google')
         } else {
           localStorage.setItem('owner_token', response.data.token || '')
-          localStorage.setItem('owner_user', JSON.stringify(response.data.data || {}))
+          localStorage.setItem('owner_user', JSON.stringify(response.data.owner || response.data.data || {}))
           router.push('/owner/dashboard')
         }
       } else {
@@ -141,7 +141,7 @@ export default function OwnerLoginPage() {
               transition={{ delay: 0.2, type: "spring" }}
               className="w-28 h-28 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl flex items-center justify-center mx-auto shadow-2xl p-3"
             >
-              <img src="/Logo.png" alt="Owner Logo" className="h-full w-full object-contain drop-shadow-md rounded-2xl" />
+              <img src="/images/Logo.png" alt="Owner Logo" className="h-full w-full object-contain drop-shadow-md rounded-2xl" />
             </motion.div>
             <h2 className="text-2xl font-bold text-white mt-4">Owner Login</h2>
             <p className="text-white/70 text-sm">Welcome back! Please enter your details.</p>
@@ -207,7 +207,7 @@ export default function OwnerLoginPage() {
               <Button 
                 type="submit" 
                 disabled={isSubmitting || isGoogleLoading}
-                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-mint to-brand-caribbean text-brand-dark-green hover:from-brand-caribbean hover:to-brand-mint border-none shadow-[0_0_30px_rgba(42,161,152,0.4)] hover:shadow-[0_0_40px_rgba(42,161,152,0.6)] transition-all rounded-2xl mt-6 group" 
+                className="w-full h-14 text-lg mt-6 group" 
               >
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Secure Login'}
               </Button>

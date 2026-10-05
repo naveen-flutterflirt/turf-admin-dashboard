@@ -22,7 +22,7 @@ export default function TurfsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('PENDING')
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 8
+  const [itemsPerPage, setItemsPerPage] = useState(8)
 
   // Modal States
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -90,8 +90,8 @@ export default function TurfsPage() {
     })
   }, [turfs, searchTerm, viewMode])
 
-  const totalPages = Math.ceil(filteredTurfs.length / ITEMS_PER_PAGE)
-  const paginatedTurfs = filteredTurfs.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(filteredTurfs.length / itemsPerPage)
+  const paginatedTurfs = filteredTurfs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
 
 
@@ -185,9 +185,10 @@ export default function TurfsPage() {
         </CardHeader>
         <CardContent className="p-0 flex flex-col min-h-[400px]">
           {isLoading ? (
-            <div className="py-20 flex flex-col justify-center items-center text-brand-mint">
-              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-8 h-8 border-4 border-brand-mint border-t-transparent rounded-full mb-4" />
-              <span className="font-medium">Fetching Turfs...</span>
+            <div className="w-full p-6 space-y-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="w-full h-24 bg-muted/40 rounded-xl animate-pulse border border-border/50" />
+              ))}
             </div>
           ) : isError ? (
             <div className="py-20 text-center text-red-500 font-medium bg-red-500/5 m-4 rounded-xl border border-red-500/20">Failed to load turfs. Please try again later.</div>
@@ -481,6 +482,10 @@ export default function TurfsPage() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={filteredTurfs.length}
+                onItemsPerPageChange={(num) => { setItemsPerPage(num); setCurrentPage(1); }}
+                itemsPerPageOptions={[5, 8, 10, 20, 50]}
               />
             </div>
           )}

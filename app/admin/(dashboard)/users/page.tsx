@@ -27,7 +27,7 @@ export default function UsersPage() {
   // Search, Filter, Pagination state
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 8
+  const [itemsPerPage, setItemsPerPage] = useState(8)
   const deleteMutation = useMutation({
     mutationFn: usersService.deleteUser,
     onSuccess: () => {
@@ -54,11 +54,11 @@ export default function UsersPage() {
     })
   }, [users, searchTerm])
 
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
 
   // Ensure currentPage is valid for the current filtered list
   const validCurrentPage = Math.min(currentPage, Math.max(1, totalPages))
-  const paginatedUsers = filteredUsers.slice((validCurrentPage - 1) * ITEMS_PER_PAGE, validCurrentPage * ITEMS_PER_PAGE)
+  const paginatedUsers = filteredUsers.slice((validCurrentPage - 1) * itemsPerPage, validCurrentPage * itemsPerPage)
 
   const handleExport = () => {
     const exportData = filteredUsers.map(u => ({
@@ -108,7 +108,11 @@ export default function UsersPage() {
         <CardContent className="p-0 sm:p-6 sm:pt-0 flex flex-col min-h-[400px]">
           <div className="flex-1 w-full overflow-hidden">
             {isLoading ? (
-              <div className="py-10 text-center text-muted-foreground">Loading customers...</div>
+              <div className="w-full p-6 space-y-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="w-full h-16 bg-muted/40 rounded-xl animate-pulse border border-border/50" />
+                ))}
+              </div>
             ) : isError ? (
               <div className="py-10 text-center text-red-500">Failed to load customers.</div>
             ) : filteredUsers.length === 0 ? (
@@ -169,6 +173,10 @@ export default function UsersPage() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={filteredUsers.length}
+                onItemsPerPageChange={(num) => { setItemsPerPage(num); setCurrentPage(1); }}
+                itemsPerPageOptions={[5, 8, 10, 20, 50]}
               />
             </div>
           )}

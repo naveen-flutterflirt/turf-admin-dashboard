@@ -13,7 +13,6 @@ const navItems = [
   { name: 'Turfs', href: '/admin/turfs', icon: TentTree },
   { name: 'Bookings', href: '/admin/bookings', icon: CalendarCheck },
   { name: 'Payments', href: '/admin/payments', icon: CreditCard },
-  { name: 'Reports', href: '/admin/reports', icon: PieChart },
   { name: 'Sports', href: '/admin/sports', icon: Dumbbell },
   { name: 'Queries', href: '/admin/queries', icon: MessageSquare },
   { name: 'Broadcasts', href: '/admin/broadcasts', icon: Megaphone },
@@ -68,17 +67,17 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
             strokeLinejoin="round"
             className={cn("transition-transform duration-300", isCollapsed ? "rotate-180" : "")}
           >
-            <path d="m15 18-6-6 6-6"/>
+            <path d="m15 18-6-6 6-6" />
           </svg>
         </button>
       )}
 
       <div className="flex items-center justify-center h-16 border-b border-border py-2 overflow-hidden">
-        <motion.img 
-          src="/Logo.png" 
-          alt="Turf Admin Logo" 
-          className="h-full object-contain dark:invert-0 dark:hue-rotate-0 invert hue-rotate-180 transition-all duration-300" 
-          animate={{ 
+        <motion.img
+          src="/images/Logo.png"
+          alt="Turf Admin Logo"
+          className="h-full object-contain dark:invert-0 dark:hue-rotate-0 invert hue-rotate-180 transition-all duration-300"
+          animate={{
             opacity: isCollapsed ? 0 : 1,
             scale: isCollapsed ? 0.5 : 1,
             display: isCollapsed ? "none" : "block"
@@ -86,7 +85,7 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
           transition={{ duration: 0.2 }}
         />
         {isCollapsed && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             className="w-8 h-8 rounded-lg bg-brand-mint/20 flex items-center justify-center text-brand-dark-green font-bold text-xl"
@@ -95,7 +94,7 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
           </motion.div>
         )}
       </div>
-      
+
       <nav className="flex-1 overflow-y-auto py-6 custom-scrollbar overflow-x-hidden">
         <ul className="space-y-2 px-3">
           {navItems.map((item) => {
@@ -124,9 +123,9 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
                     <div className="absolute inset-0 bg-muted/0 group-hover:bg-muted/60 rounded-xl transition-colors duration-300 z-0" />
                   )}
                   <item.icon className={cn("h-5 w-5 relative z-10 transition-transform duration-300 group-hover:scale-110 flex-shrink-0", isActive ? "drop-shadow-sm" : "")} />
-                  
-                  <motion.span 
-                    animate={{ 
+
+                  <motion.span
+                    animate={{
                       opacity: isCollapsed ? 0 : 1,
                       width: isCollapsed ? 0 : "auto",
                       display: isCollapsed ? "none" : "block"
@@ -141,7 +140,7 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
           })}
         </ul>
       </nav>
-      
+
       <div className="border-t border-border/40 p-4 bg-gradient-to-b from-transparent to-background/50 overflow-hidden">
         <Link
           href="/admin/login"
@@ -153,8 +152,8 @@ export function Sidebar({ onNavigate, hideCollapseButton = false }: { onNavigate
           )}
         >
           <LogOut className="h-5 w-5 transition-transform duration-300 group-hover:-translate-x-1 flex-shrink-0" />
-          <motion.span 
-            animate={{ 
+          <motion.span
+            animate={{
               opacity: isCollapsed ? 0 : 1,
               width: isCollapsed ? 0 : "auto",
               display: isCollapsed ? "none" : "block"

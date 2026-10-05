@@ -200,7 +200,7 @@ export default function OwnerForgotPasswordPage() {
                   <Button 
                     type="submit" 
                     disabled={forgotForm.formState.isSubmitting}
-                    className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-mint to-brand-caribbean text-brand-dark-green hover:from-brand-caribbean hover:to-brand-mint border-none shadow-[0_0_30px_rgba(42,161,152,0.4)] hover:shadow-[0_0_40px_rgba(42,161,152,0.6)] transition-all rounded-2xl mt-6" 
+                    className="w-full h-14 text-lg mt-6" 
                   >
                     {forgotForm.formState.isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Reset Code'}
                   </Button>
@@ -298,7 +298,7 @@ export default function OwnerForgotPasswordPage() {
                   <Button 
                     type="submit" 
                     disabled={resetForm.formState.isSubmitting || !!successMessage}
-                    className="w-full h-14 text-lg font-bold bg-gradient-to-r from-brand-mint to-brand-caribbean text-brand-dark-green hover:from-brand-caribbean hover:to-brand-mint border-none shadow-[0_0_30px_rgba(42,161,152,0.4)] hover:shadow-[0_0_40px_rgba(42,161,152,0.6)] transition-all rounded-2xl mt-6" 
+                    className="w-full h-14 text-lg mt-6" 
                   >
                     {resetForm.formState.isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Reset Password'}
                   </Button>
