@@ -28,7 +28,7 @@ export default function OwnerDashboardPage() {
 
   if (loading) {
     return (
-      <div className="space-y-8 pb-10">
+      <div className="flex flex-col h-full gap-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <div className="h-9 w-48 bg-muted/40 animate-pulse rounded-lg"></div>
@@ -41,8 +41,8 @@ export default function OwnerDashboardPage() {
           ))}
         </div>
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-          <div className="h-[400px] bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl animate-pulse"></div>
-          <div className="h-[400px] bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl animate-pulse"></div>
+          <div className="h-full bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl animate-pulse"></div>
+          <div className="h-full bg-card/40 backdrop-blur-xl border border-border/50 rounded-xl animate-pulse"></div>
         </div>
       </div>
     )
@@ -74,7 +74,7 @@ export default function OwnerDashboardPage() {
   }));
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="flex flex-col h-[calc(100vh-8rem)] xl:h-full gap-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Owner Dashboard</h2>
@@ -86,7 +86,7 @@ export default function OwnerDashboardPage() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid gap-3 sm:gap-6 grid-cols-2 lg:grid-cols-4"
+        className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4 shrink-0"
       >
         {summaryData.map((item) => (
           <motion.div key={item.title} variants={itemVariants}>
@@ -112,9 +112,9 @@ export default function OwnerDashboardPage() {
         ))}
       </motion.div>
 
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 flex-1 min-h-0 pb-2">
         {/* Recent Bookings */}
-        <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm flex flex-col">
+        <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm flex flex-col h-full overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Recent Bookings</CardTitle>
@@ -126,7 +126,7 @@ export default function OwnerDashboardPage() {
               </Button>
             </Link>
           </CardHeader>
-          <CardContent className="flex-1">
+          <CardContent className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
             <div className="space-y-4">
               {recentBookings.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground">No recent bookings found.</div>
@@ -160,7 +160,7 @@ export default function OwnerDashboardPage() {
         </Card>
         
         {/* Revenue Chart */}
-        <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm flex flex-col">
+        <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm flex flex-col h-full overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
               <TrendingUp className="w-5 h-5 text-brand-mint" /> Revenue Trend
@@ -171,7 +171,7 @@ export default function OwnerDashboardPage() {
             {trendData.length === 0 ? (
                <div className="text-center py-6 text-muted-foreground">No revenue data available.</div>
             ) : (
-              <div className="h-[250px] w-full mt-4">
+              <div className="flex-1 w-full mt-4 min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>

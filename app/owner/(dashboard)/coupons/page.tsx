@@ -171,7 +171,7 @@ export default function OwnerCouponsPage() {
                                 <div className="text-sm text-muted-foreground">Loading your customers...</div>
                             ) : customers.length === 0 ? (
                                 <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded-md border border-amber-200">
-                                    You don't have any past customers yet. Only users who have booked your turf will appear here.
+                                    You don&apos;t have any past customers yet. Only users who have booked your turf will appear here.
                                 </div>
                             ) : (
                                 <select
@@ -350,7 +350,7 @@ export default function OwnerCouponsPage() {
                 ) : coupons.length === 0 ? (
                   <div className="py-20 text-center text-muted-foreground">
                     <Tag className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                    <p>You haven't created any coupons yet.</p>
+                    <p>You haven&apos;t created any coupons yet.</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-border">

@@ -3,6 +3,7 @@ import axios from '@/lib/axios'
 export interface Sport {
   id: string
   name: string
+  is_active?: boolean
 }
 
 export interface Turf {
@@ -98,5 +99,18 @@ export const turfsService = {
     if (!response.data || !response.data.success) {
       throw new Error(response.data?.message || "Failed to delete turf")
     }
+  },
+
+  toggleSportStatus: async (turfId: string, sportId: string): Promise<{ success: boolean; message: string; is_active: boolean }> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('owner_token') : null
+    if (!token) throw new Error("No authorization token found")
+
+    const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/owner/turfs/${turfId}/sports/${sportId}/toggle`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    return response.data
   }
 }

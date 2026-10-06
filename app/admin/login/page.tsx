@@ -166,7 +166,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-14 text-lg mt-6 group"
+                className="w-full h-14 text-lg mt-6 group bg-brand-mint text-brand-dark-green hover:bg-brand-mint/90 font-bold tracking-wide rounded-2xl shadow-[0_0_20px_rgba(45,212,191,0.3)] transition-all hover:scale-[1.02]"
               >
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Secure Login'}
               </Button>

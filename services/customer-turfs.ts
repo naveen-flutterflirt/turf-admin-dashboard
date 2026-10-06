@@ -1,6 +1,7 @@
 export interface Sport {
   id: string;
   name: string;
+  is_active?: boolean;
 }
 
 export interface TurfImage {

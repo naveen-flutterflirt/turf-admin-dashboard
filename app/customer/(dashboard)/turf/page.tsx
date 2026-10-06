@@ -147,7 +147,7 @@ export default function CustomerTurfsPage() {
   const [bookingStep, setBookingStep] = useState<0 | 1 | 2>(0)
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [selectedSport, setSelectedSport] = useState('')
-  const [selectedSlot, setSelectedSlot] = useState<{start_time: string, end_time: string, price: number, label?: string, status?: string} | null>(null)
+  const [selectedSlots, setSelectedSlots] = useState<{start_time: string, end_time: string, price: number, label?: string, status?: string}[]>([])
   
   const [isBooking, setIsBooking] = useState(false)
   const [bookingMessage, setBookingMessage] = useState('')
@@ -237,8 +237,9 @@ export default function CustomerTurfsPage() {
         try {
           const res = await couponService.getAvailableCoupons(selectedTurf.id)
           setAvailableCoupons(res || [])
-        } catch (err) {
+        } catch (err: any) {
           console.error("Failed to fetch coupons", err)
+          setCouponError(err.message || "Failed to load available coupons")
         } finally {
           setIsLoadingCoupons(false)
         }
@@ -249,12 +250,13 @@ export default function CustomerTurfsPage() {
 
   const handleApplyCoupon = async () => {
     if (!couponCode) return
-    if (!selectedSlot || !selectedTurf) return
+    if (selectedSlots.length === 0 || !selectedTurf) return
     
     setIsValidatingCoupon(true)
     setCouponError('')
     try {
-      const res = await couponService.validateCoupon(couponCode, selectedTurf.id, selectedSlot.price)
+      const totalPrice = selectedSlots.reduce((sum, s) => sum + s.price, 0)
+      const res = await couponService.validateCoupon(couponCode, selectedTurf.id, totalPrice)
       setAppliedCoupon(res)
       setCouponCode('')
     } catch (err: any) {
@@ -283,8 +285,8 @@ export default function CustomerTurfsPage() {
 
   const handleBookNow = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedTurf || !selectedSport || !selectedSlot) {
-      setBookingMessage("Please select sport, date and a time slot.")
+    if (!selectedTurf || !selectedSport || selectedSlots.length === 0) {
+      setBookingMessage("Please select sport, date and at least one time slot.")
       return
     }
     
@@ -296,7 +298,7 @@ export default function CustomerTurfsPage() {
       turf_id: selectedTurf.id,
       sport_id: selectedSport,
       date: formattedDate,
-      time_slots: [{ start_time: selectedSlot.start_time, end_time: selectedSlot.end_time }],
+      time_slots: selectedSlots.map(s => ({ start_time: s.start_time, end_time: s.end_time })),
       coupon_code: appliedCoupon?.code
     })
     
@@ -351,7 +353,13 @@ export default function CustomerTurfsPage() {
         setBookingMessage("Payment failed. Please try again.")
       })
     } else {
-      setBookingMessage(res.message || "Failed to book.")
+      if (res.message === "The selected sport is not available at this turf") {
+        alert("The selected sport is not available at this turf.");
+        setBookingStep(1);
+        setBookingMessage('');
+      } else {
+        setBookingMessage(res.message || "Failed to book.")
+      }
     }
   }
 
@@ -781,15 +789,25 @@ export default function CustomerTurfsPage() {
                   <>
                     {/* Sports Selector */}
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                      {selectedTurf.sports?.map(s => (
-                        <button
-                          key={s.id}
-                          onClick={() => setSelectedSport(s.id)}
-                          className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition-all border ${selectedSport === s.id ? 'bg-brand-caribbean text-black border-brand-caribbean shadow-[0_0_10px_rgba(45,212,191,0.3)]' : 'bg-background text-foreground border-border hover:bg-muted'}`}
-                        >
-                          {s.name}
-                        </button>
-                      ))}
+                      {selectedTurf.sports?.map(s => {
+                        const isActive = s.is_active !== false;
+                        return (
+                          <div key={s.id} className="inline-block">
+                            <button
+                              onClick={() => isActive && setSelectedSport(s.id)}
+                              disabled={!isActive}
+                              className={`flex items-center gap-2 whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition-all border ${!isActive ? 'opacity-60 cursor-not-allowed bg-muted/50 text-muted-foreground border-border/50' : selectedSport === s.id ? 'bg-brand-caribbean text-black border-brand-caribbean shadow-[0_0_10px_rgba(45,212,191,0.3)]' : 'bg-background text-foreground border-border hover:bg-muted'}`}
+                            >
+                              {s.name}
+                              {!isActive && (
+                                <span className="text-[9px] uppercase tracking-wider font-bold text-white bg-red-500/80 px-1.5 py-0.5 rounded-sm">
+                                  Unavailable
+                                </span>
+                              )}
+                            </button>
+                          </div>
+                        )
+                      })}
                     </div>
 
                     {/* Date Selector */}
@@ -842,7 +860,7 @@ export default function CustomerTurfsPage() {
                                 <h4 className="text-base font-semibold capitalize mb-3">{period}</h4>
                                 <div className="grid grid-cols-2 gap-3">
                                   {fetchedSlots[period as keyof typeof fetchedSlots].map((slot: any, i: number) => {
-                                    const isSelected = selectedSlot?.start_time === slot.start_time
+                                    const isSelected = selectedSlots.some(s => s.start_time === slot.start_time)
                                     const isAvailable = slot.status === 'AVAILABLE'
                                     const isBooked = slot.status === 'BOOKED'
                                     
@@ -850,7 +868,13 @@ export default function CustomerTurfsPage() {
                                       <button
                                         key={i}
                                         disabled={!isAvailable}
-                                        onClick={() => setSelectedSlot(slot)}
+                                        onClick={() => {
+                                          if (isSelected) {
+                                            setSelectedSlots(prev => prev.filter(s => s.start_time !== slot.start_time))
+                                          } else {
+                                            setSelectedSlots(prev => [...prev, slot])
+                                          }
+                                        }}
                                         className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
                                           isSelected ? 'bg-brand-caribbean/20 border-brand-caribbean text-brand-caribbean' :
                                           isAvailable ? 'bg-background border-border text-foreground hover:bg-muted' :
@@ -902,15 +926,17 @@ export default function CustomerTurfsPage() {
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">Time</span>
-                        <span className="font-medium text-right">{selectedSlot?.label}</span>
+                        <span className="font-medium text-right max-w-[60%] leading-relaxed">
+                          {selectedSlots.map(s => s.label).join(', ')}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">Duration</span>
-                        <span className="font-medium text-right">1 Hour</span>
+                        <span className="font-medium text-right">{selectedSlots.length} Hour{selectedSlots.length > 1 ? 's' : ''}</span>
                       </div>
                       <div className="flex justify-between items-center text-sm border-t border-border pt-4 mt-2">
                         <span className="font-medium">Subtotal</span>
-                        <span className="font-medium">₹{selectedSlot?.price}</span>
+                        <span className="font-medium">₹{selectedSlots.reduce((sum, s) => sum + s.price, 0)}</span>
                       </div>
                       {appliedCoupon && (
                         <div className="flex justify-between items-center text-sm text-brand-caribbean">
@@ -920,7 +946,7 @@ export default function CustomerTurfsPage() {
                       )}
                       <div className="flex justify-between items-center text-base border-t border-border pt-4 mt-2">
                         <span className="font-bold">Total Amount</span>
-                        <span className="font-bold text-brand-caribbean text-xl">₹{appliedCoupon ? appliedCoupon.final_total : selectedSlot?.price}</span>
+                        <span className="font-bold text-brand-caribbean text-xl">₹{appliedCoupon ? appliedCoupon.final_total : selectedSlots.reduce((sum, s) => sum + s.price, 0)}</span>
                       </div>
                     </div>
                     
@@ -974,7 +1000,7 @@ export default function CustomerTurfsPage() {
                                   <div className="text-center py-4 text-muted-foreground text-xs">No coupons available right now.</div>
                                 ) : (
                                   availableCoupons.map(coupon => {
-                                    const subtotal = selectedSlot?.price || 0;
+                                    const subtotal = selectedSlots.reduce((sum, s) => sum + s.price, 0);
                                     const minAmount = coupon.min_booking_amount ? parseFloat(coupon.min_booking_amount) : 0;
                                     const isLocked = subtotal < minAmount;
 
@@ -1055,7 +1081,7 @@ export default function CustomerTurfsPage() {
                   <Button 
                     onClick={() => {
                       if (!selectedSport) setBookingMessage("Please select a sport.")
-                      else if (!selectedSlot) setBookingMessage("Please select a time slot.")
+                      else if (selectedSlots.length === 0) setBookingMessage("Please select at least one time slot.")
                       else { setBookingMessage(''); setBookingStep(2) }
                     }}
                     className="w-full h-14 text-base font-semibold rounded-2xl bg-brand-caribbean text-black hover:bg-brand-caribbean/90 transition-all shadow-[0_0_20px_rgba(45,212,191,0.3)]"

@@ -399,7 +399,13 @@ export default function CustomerBookingsPage() {
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Time Slot</p>
-                          <p className="font-medium text-foreground">{booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}</p>
+                          {(booking.time_slots && booking.time_slots.length > 0) ? (
+                            booking.time_slots.map((slot: any, idx: number) => (
+                              <p key={idx} className="font-medium text-foreground">{slot.start_time?.slice(0, 5)} - {slot.end_time?.slice(0, 5)}</p>
+                            ))
+                          ) : (
+                            <p className="font-medium text-foreground">{booking.start_time?.slice(0, 5)} - {booking.end_time?.slice(0, 5)}</p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -439,7 +445,10 @@ export default function CustomerBookingsPage() {
                             Cancel
                           </Button>
                         )}
-                        {(status === 'COMPLETED' || (status === 'CONFIRMED' && new Date(`${booking.booking_date.split('T')[0]}T${booking.start_time}`) < new Date())) && booking.has_feedback !== 'DELETED' && (
+                        {(status === 'COMPLETED' || (status === 'CONFIRMED' && (() => {
+                          const firstStartTime = booking.time_slots && booking.time_slots.length > 0 ? booking.time_slots[0].start_time : booking.start_time;
+                          return firstStartTime ? new Date(`${booking.booking_date.split('T')[0]}T${firstStartTime}`) < new Date() : false;
+                        })())) && booking.has_feedback !== 'DELETED' && (
                           <Button 
                             size="sm"
                             onClick={() => openFeedback(booking)}
@@ -451,7 +460,11 @@ export default function CustomerBookingsPage() {
                         )}
                         <div className="text-right">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono mb-1">Booking ID</p>
-                          <p className="text-sm font-mono text-foreground/60 font-semibold">{booking.id.split('-')[0].toUpperCase()}</p>
+                          <p className="text-sm font-mono text-foreground/60 font-semibold">
+                            {booking.id.startsWith('mock-booking-') 
+                              ? `BK${booking.id.split('-')[2]?.substring(0, 6)}`.toUpperCase() 
+                              : (booking.id.includes('-') ? booking.id.split('-')[0] : booking.id.substring(0, 8)).toUpperCase()}
+                          </p>
                         </div>
                       </div>
                     </div>

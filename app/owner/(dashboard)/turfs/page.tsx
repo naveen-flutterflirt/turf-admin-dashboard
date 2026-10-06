@@ -98,22 +98,46 @@ export default function OwnerTurfsPage() {
           Authorization: `Bearer ${token}`
         }
       })
-      
-      if (response.data && response.data.success !== false) {
-        toast.success("Turf deleted successfully!")
-        setTurfs(prev => prev.filter(t => (t.id || t.turf_id) !== turfToDelete))
-        setDetailsModalOpen(false) // Close details if open
-      } else {
-        toast.error(response.data?.message || "Failed to delete turf.")
+      if (response.data?.success) {
+        toast.success("Turf deleted successfully")
+        setDeleteModalOpen(false)
+        fetchTurfs()
       }
     } catch (err: any) {
-      console.error(err)
-      toast.error(err.response?.data?.message || "Failed to delete turf.")
-    } finally {
-      setDeleteModalOpen(false)
-      setTurfToDelete(null)
+      toast.error(err.response?.data?.message || "Failed to delete turf")
     }
   }
+
+  const handleToggleSport = async (turfId: string, sportId: string) => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('owner_token') : null
+      if (!token) throw new Error("No authorization token found")
+
+      const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/owner/turfs/${turfId}/sports/${sportId}/toggle`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (response.data && response.data.success) {
+        toast.success(response.data.message)
+        setSelectedTurf((prev: any) => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            sports: prev.sports.map((s: any) => {
+              if (typeof s === 'object' && (s.id === sportId || s._id === sportId)) {
+                return { ...s, is_active: response.data.is_active }
+              }
+              return s
+            })
+          }
+        })
+        fetchTurfs()
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to toggle sport status")
+    }
+  }
+
 
   const handleStatusChange = async (e: React.MouseEvent, id: string, currentStatus: string) => {
     e.stopPropagation() // Prevent opening details modal
@@ -335,22 +359,7 @@ export default function OwnerTurfsPage() {
         </motion.div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        title="Delete Turf"
-        description="Are you sure you want to delete this turf? This action cannot be undone."
-      >
-        <div className="flex justify-end gap-3 mt-6">
-          <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={confirmDelete}>
-            Delete Turf
-          </Button>
-        </div>
-      </Modal>
+
 
       {/* Full Details Modal */}
       {selectedTurf && (
@@ -445,12 +454,26 @@ export default function OwnerTurfsPage() {
               {/* Sports */}
               <div>
                 <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold">Sports</p>
-                <div className="flex flex-wrap gap-2">
-                  {selectedTurf.sports && Array.isArray(selectedTurf.sports) && selectedTurf.sports.length > 0 ? selectedTurf.sports.map((sport: any, i: number) => (
-                    <span key={i} className="px-2.5 py-1 rounded-md bg-brand-mint/10 text-brand-mint border border-brand-mint/20 text-xs font-medium">
-                      {typeof sport === 'object' ? sport.name || sport.id : sport}
-                    </span>
-                  )) : <span className="text-xs text-muted-foreground italic">No sports added</span>}
+                <div className="flex flex-col gap-2">
+                  {selectedTurf.sports && Array.isArray(selectedTurf.sports) && selectedTurf.sports.length > 0 ? selectedTurf.sports.map((sport: any, i: number) => {
+                    const sportObj = typeof sport === 'object' ? sport : null;
+                    const isActive = sportObj ? sportObj.is_active !== false : true;
+                    return (
+                      <div key={i} className="flex items-center justify-between px-3 py-2 rounded-md bg-muted/50 border border-border/50">
+                        <span className={`text-xs font-medium ${isActive ? 'text-brand-mint' : 'text-muted-foreground line-through'}`}>
+                          {sportObj ? sportObj.name || sportObj.id : sport}
+                        </span>
+                        {sportObj && sportObj.id && (
+                          <button 
+                            onClick={() => handleToggleSport(selectedTurf.id || selectedTurf.turf_id, sportObj.id)}
+                            className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-mint focus:ring-offset-2 ${isActive ? 'bg-brand-mint' : 'bg-muted-foreground/30'}`}
+                          >
+                            <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isActive ? 'translate-x-5' : 'translate-x-0'}`} />
+                          </button>
+                        )}
+                      </div>
+                    )
+                  }) : <span className="text-xs text-muted-foreground italic">No sports added</span>}
                 </div>
               </div>
 
@@ -490,6 +513,23 @@ export default function OwnerTurfsPage() {
           </div>
         </Modal>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Delete Turf"
+        description="Are you sure you want to delete this turf? This action cannot be undone."
+      >
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={confirmDelete}>
+            Delete Turf
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }

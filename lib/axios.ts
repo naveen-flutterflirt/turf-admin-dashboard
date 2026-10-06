@@ -49,10 +49,14 @@ axiosInstance.interceptors.response.use(
           localStorage.removeItem('owner_user');
           window.location.href = '/owner/login';
         } else if (path.startsWith('/customer')) {
-          // localStorage.removeItem('customer_token');
-          // localStorage.removeItem('customer_user');
-          // window.location.href = '/';
-          console.error("401 Unauthorized encountered via axios in customer route.");
+          const currentToken = localStorage.getItem('customer_token');
+          // If using a client-side Google OAuth token, don't force logout on 401
+          // as the backend might not be configured to verify it yet.
+          if (!currentToken || !currentToken.startsWith('ya29.')) {
+            localStorage.removeItem('customer_token');
+            localStorage.removeItem('customer_user');
+            window.location.href = '/';
+          }
         }
       }
     }

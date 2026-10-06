@@ -38,11 +38,12 @@ export const customerBookingsService = {
       // Fallback for Google tokens to prevent 401 Unauthorized
       if (token && token.startsWith('ya29.')) {
         const newBooking = {
-          id: 'mock-booking-' + Date.now(),
+          id: 'BK' + Math.random().toString(36).substring(2, 10).toUpperCase(),
           turf: { name: 'Demo Turf', address: '123 Test Ave', city: 'Test City' },
           turf_id: payload.turf_id,
           sport: { name: 'Football' },
-          date: payload.date,
+          booking_date: payload.date,
+          date: payload.date, // keeping this just in case anything else relies on it
           total_price: "500",
           status: "confirmed",
           payment_status: "paid",

@@ -65,7 +65,7 @@ export function OwnerLayout({ children }: { children: React.ReactNode }) {
       <div className="relative z-10 flex-1 flex flex-col min-w-0 overflow-hidden">
         <OwnerHeader onMenuClick={() => setIsSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-7xl h-full">
             {children}
           </div>
         </main>
