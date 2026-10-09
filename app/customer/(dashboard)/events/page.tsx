@@ -456,7 +456,7 @@ export default function CustomerEventsPage() {
 													<Edit className="w-4 h-4 mr-2" />
 													Edit
 												</Button>
-												<Button variant="destructive" className="w-1/2 bg-red-50 text-red-600 hover:bg-red-100 border-red-200" onClick={() => handleDeleteEvent(event.id)}>
+												<Button variant="danger" className="w-1/2 bg-red-50 text-red-600 hover:bg-red-100 border-red-200" onClick={() => handleDeleteEvent(event.id)}>
 													<Trash2 className="w-4 h-4 mr-2" />
 													Delete
 												</Button>
