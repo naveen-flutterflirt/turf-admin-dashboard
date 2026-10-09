@@ -101,8 +101,8 @@ export const joinEvent = async (eventId: string, payment_transaction_id: string)
 	return response.data;
 };
 
-export const getOwnerPendingEvents = async () => {
-	const response = await axios.get('/events/owner/pending');
+export const getOwnerEvents = async () => {
+	const response = await axios.get('/events/owner/all');
 	return response.data;
 };
 

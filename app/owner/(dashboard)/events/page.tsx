@@ -4,25 +4,26 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Check, X, Calendar, Clock, Users, IndianRupee, MapPin } from 'lucide-react';
-import { getOwnerPendingEvents, ownerApproveEvent, EventData } from '@/services/events';
+import { getOwnerEvents, ownerApproveEvent, EventData } from '@/services/events';
 import { toast } from 'sonner';
 import { EmptyState } from '@/components/ui/empty-state';
 
 export default function OwnerEventsPage() {
-	const [pendingEvents, setPendingEvents] = useState<EventData[]>([]);
+	const [activeTab, setActiveTab] = useState<'pending' | 'all'>('pending');
+	const [events, setEvents] = useState<EventData[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [processingId, setProcessingId] = useState<string | null>(null);
 
 	const fetchEvents = async () => {
 		try {
 			setLoading(true);
-			const response = await getOwnerPendingEvents();
+			const response = await getOwnerEvents();
 			if (response.success) {
-				setPendingEvents(response.data);
+				setEvents(response.data);
 			}
 		} catch (error) {
-			console.error("Error fetching pending events:", error);
-			toast.error("Failed to load pending events");
+			console.error("Error fetching events:", error);
+			toast.error("Failed to load events");
 		} finally {
 			setLoading(false);
 		}
@@ -38,7 +39,7 @@ export default function OwnerEventsPage() {
 			const response = await ownerApproveEvent(eventId, status);
 			if (response.success) {
 				toast.success(status === 'OPEN' ? "Event approved successfully!" : "Event rejected.");
-				setPendingEvents(prev => prev.filter(e => e.id !== eventId));
+				setEvents(prev => prev.map(e => e.id === eventId ? { ...e, status } : e));
 			}
 		} catch (error) {
 			console.error(`Error updating event status:`, error);
@@ -52,24 +53,41 @@ export default function OwnerEventsPage() {
 		return <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-caribbean"></div></div>;
 	}
 
+	const filteredEvents = activeTab === 'pending' ? events.filter(e => e.status === 'PENDING') : events;
+
 	return (
 		<div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
 			<div>
-				<h1 className="text-3xl font-bold tracking-tight text-foreground">Pending Events</h1>
+				<h1 className="text-3xl font-bold tracking-tight text-foreground">Community Events</h1>
 				<p className="text-muted-foreground mt-2">
-					Review and approve events created by users for your turfs. Approving an event will make it visible to everyone.
+					Review and manage community events created on your turfs.
 				</p>
 			</div>
 
-			{pendingEvents.length === 0 ? (
+			<div className="flex space-x-2 border-b border-border mb-6">
+				<button 
+					onClick={() => setActiveTab('pending')}
+					className={`pb-2 px-4 text-sm font-medium transition-colors ${activeTab === 'pending' ? 'border-b-2 border-brand-caribbean text-brand-caribbean' : 'text-muted-foreground hover:text-foreground'}`}
+				>
+					Pending Requests
+				</button>
+				<button 
+					onClick={() => setActiveTab('all')}
+					className={`pb-2 px-4 text-sm font-medium transition-colors ${activeTab === 'all' ? 'border-b-2 border-brand-caribbean text-brand-caribbean' : 'text-muted-foreground hover:text-foreground'}`}
+				>
+					All Events
+				</button>
+			</div>
+
+			{filteredEvents.length === 0 ? (
 				<EmptyState 
-					title="No Pending Events" 
-					description="You have no events waiting for approval right now." 
+					title={`No ${activeTab === 'pending' ? 'Pending' : ''} Events`} 
+					description={`You have no ${activeTab === 'pending' ? 'events waiting for approval' : 'events'} right now.`} 
 					icon={Calendar} 
 				/>
 			) : (
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{pendingEvents.map(event => (
+					{filteredEvents.map(event => (
 						<Card key={event.id} className="overflow-hidden border-border bg-card shadow-sm hover:shadow-md transition-shadow">
 							<CardHeader className="bg-brand-caribbean/10 pb-4">
 								<div className="flex justify-between items-start">
@@ -80,8 +98,12 @@ export default function OwnerEventsPage() {
 											{event.turf_name}
 										</CardDescription>
 									</div>
-									<div className="bg-brand-orange text-white text-xs font-bold px-2 py-1 rounded-md">
-										PENDING
+									<div className={`text-xs font-bold px-2 py-1 rounded-md text-white ${
+										event.status === 'OPEN' ? 'bg-brand-caribbean text-brand-dark-green' : 
+										event.status === 'PENDING' ? 'bg-brand-orange' : 
+										'bg-red-500'
+									}`}>
+										{event.status}
 									</div>
 								</div>
 							</CardHeader>
@@ -108,23 +130,25 @@ export default function OwnerEventsPage() {
 									<p className="text-sm font-medium text-foreground">{event.creator_name} <span className="text-muted-foreground ml-2">({event.creator_phone})</span></p>
 								</div>
 							</CardContent>
-							<CardFooter className="flex gap-3 pt-0 pb-5 px-5">
-								<Button 
-									variant="outline" 
-									className="w-1/2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-									onClick={() => handleAction(event.id, 'CANCELLED')}
-									disabled={processingId === event.id}
-								>
-									{processingId === event.id ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div> : <><X className="w-4 h-4 mr-2" /> Reject</>}
-								</Button>
-								<Button 
-									className="w-1/2 bg-brand-caribbean text-brand-dark-green hover:bg-brand-caribbean/90"
-									onClick={() => handleAction(event.id, 'OPEN')}
-									disabled={processingId === event.id}
-								>
-									{processingId === event.id ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-dark-green"></div> : <><Check className="w-4 h-4 mr-2" /> Approve</>}
-								</Button>
-							</CardFooter>
+							{event.status === 'PENDING' && (
+								<CardFooter className="flex gap-3 pt-0 pb-5 px-5">
+									<Button 
+										variant="outline" 
+										className="w-1/2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+										onClick={() => handleAction(event.id, 'CANCELLED')}
+										disabled={processingId === event.id}
+									>
+										{processingId === event.id ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div> : <><X className="w-4 h-4 mr-2" /> Reject</>}
+									</Button>
+									<Button 
+										className="w-1/2 bg-brand-caribbean text-brand-dark-green hover:bg-brand-caribbean/90"
+										onClick={() => handleAction(event.id, 'OPEN')}
+										disabled={processingId === event.id}
+									>
+										{processingId === event.id ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-dark-green"></div> : <><Check className="w-4 h-4 mr-2" /> Approve</>}
+									</Button>
+								</CardFooter>
+							)}
 						</Card>
 					))}
 				</div>
