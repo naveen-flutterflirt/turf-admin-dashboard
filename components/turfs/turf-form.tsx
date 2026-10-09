@@ -23,6 +23,8 @@ const turfSchema = z.object({
   closing_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/, 'Invalid time format (HH:MM or HH:MM:SS)'),
   sports: z.array(z.string()).min(1, 'Select at least one sport'),
   amenities: z.array(z.string()).min(1, 'Select at least one amenity'),
+  allow_events: z.boolean().default(true),
+  event_price: z.number().min(1, 'Event price must be greater than 0').optional().or(z.literal('')),
   images: z.array(z.object({
     url: z.string().url('Must be a valid image URL'),
     key: z.string()
@@ -52,8 +54,8 @@ const getImageUrl = (image: any) => {
 }
 
 export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFormProps) {
-  const defaultImages = initialData?.images && initialData.images.length > 0 
-    ? initialData.images 
+  const defaultImages = initialData?.images && initialData.images.length > 0
+    ? initialData.images
     : [{ url: '', key: `turf-images/${Date.now()}-placeholder.jpg` }]
 
   const { register, control, handleSubmit, setValue, watch, formState: { errors } } = useForm<TurfFormValues>({
@@ -70,6 +72,8 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
       closing_time: initialData?.closing_time || '23:00',
       sports: initialData?.sports || [],
       amenities: initialData?.amenities || [],
+      allow_events: initialData?.allow_events !== undefined ? initialData?.allow_events : true,
+      event_price: initialData?.event_price || 1500.00,
       images: defaultImages
     }
   })
@@ -142,7 +146,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
 
       const presignedData = await presignedRes.json()
       console.log("Presigned Data Response:", presignedData)
-      
+
       if (!presignedData.success) {
         throw new Error(presignedData.message || "Failed to get presigned URL")
       }
@@ -196,15 +200,15 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
           const { latitude, longitude } = position.coords
           const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
           const data = await response.json()
-          
+
           if (data && data.address) {
             const addr = data.address
             const streetAddressParts = []
             if (addr.road || addr.suburb || addr.neighbourhood) {
-                streetAddressParts.push(addr.road || addr.suburb || addr.neighbourhood)
+              streetAddressParts.push(addr.road || addr.suburb || addr.neighbourhood)
             }
             if (addr.city_district) {
-                streetAddressParts.push(addr.city_district)
+              streetAddressParts.push(addr.city_district)
             }
             const fullAddress = streetAddressParts.length > 0 ? streetAddressParts.join(', ') : data.display_name.split(',').slice(0, 2).join(', ')
 
@@ -212,7 +216,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
             setValue('city', addr.city || addr.town || addr.village || addr.state_district || '', { shouldValidate: true })
             setValue('state', addr.state || '', { shouldValidate: true })
             setValue('pincode', addr.postcode || '', { shouldValidate: true })
-            
+
             toast.success('Location captured successfully!')
           } else {
             toast.error('Could not determine address from location.')
@@ -237,7 +241,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <Card className="bg-card/40 backdrop-blur-xl border-border/50 shadow-sm overflow-hidden">
         <CardContent className="p-6 md:p-8 space-y-8">
-          
+
           {/* Section: Basic Info */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold border-b border-border/50 pb-2">Basic Information</h3>
@@ -246,7 +250,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase">Turf Name</label>
                 <div className="relative">
                   <TentTree className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
+                  <Input
                     className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.name ? 'border-red-500/50' : ''}`}
                     placeholder="e.g., Green Field Arena"
                     {...register('name')}
@@ -259,7 +263,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase">Price per hour (₹)</label>
                 <div className="relative">
                   <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
+                  <Input
                     type="number"
                     className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl ${errors.price_per_hour ? 'border-red-500/50' : ''}`}
                     placeholder="e.g., 1500"
@@ -268,12 +272,12 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 </div>
                 {errors.price_per_hour && <p className="text-xs text-red-400 ml-1 mt-1 font-medium">{errors.price_per_hour.message}</p>}
               </div>
-              
+
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase">Description</label>
                 <div className="relative">
                   <AlignLeft className="absolute left-4 top-3 h-5 w-5 text-muted-foreground" />
-                  <textarea 
+                  <textarea
                     className={`w-full pl-12 pt-3 h-24 bg-background border border-border/50 focus:border-brand-mint focus:ring-1 focus:ring-brand-mint/50 transition-all rounded-xl resize-none outline-none text-sm ${errors.description ? 'border-red-500/50' : ''}`}
                     placeholder="Describe your turf, surface type, field size, etc."
                     {...register('description')}
@@ -288,12 +292,12 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border/50 pb-2">
               <h3 className="text-lg font-bold">Location</h3>
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm" 
-                onClick={handleCaptureLocation} 
-                disabled={isCapturingLocation} 
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCaptureLocation}
+                disabled={isCapturingLocation}
                 className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
               >
                 {isCapturingLocation ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <MapPin className="w-4 h-4 mr-2" />}
@@ -305,7 +309,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase">Street Address</label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
+                  <Input
                     className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.address ? 'border-red-500/50' : ''}`}
                     placeholder="123 Main Road, Near Station"
                     {...register('address')}
@@ -318,7 +322,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase">City</label>
                 <div className="relative">
                   <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
+                  <Input
                     className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.city ? 'border-red-500/50' : ''}`}
                     placeholder="Bhopal"
                     {...register('city')}
@@ -331,7 +335,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase">State</label>
                 <div className="relative">
                   <Map className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
+                  <Input
                     className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.state ? 'border-red-500/50' : ''}`}
                     placeholder="Madhya Pradesh"
                     {...register('state')}
@@ -344,7 +348,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase">Pincode</label>
                 <div className="relative">
                   <MapPinned className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
+                  <Input
                     className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.pincode ? 'border-red-500/50' : ''}`}
                     placeholder="462022"
                     {...register('pincode')}
@@ -363,7 +367,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase">Opening Time (24h)</label>
                 <div className="relative">
                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
+                  <Input
                     type="time" step="1"
                     className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.opening_time ? 'border-red-500/50' : ''}`}
                     {...register('opening_time')}
@@ -375,7 +379,7 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                 <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase">Closing Time (24h)</label>
                 <div className="relative">
                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
+                  <Input
                     type="time" step="1"
                     className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.closing_time ? 'border-red-500/50' : ''}`}
                     {...register('closing_time')}
@@ -386,23 +390,57 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
             </div>
           </div>
 
+          {/* Section: Events Pricing */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold border-b border-border/50 pb-2">Split-Cost Events</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+              <div className="flex items-center space-x-2 bg-card border border-border p-4 rounded-xl">
+                <input
+                  type="checkbox"
+                  id="allow_events"
+                  {...register('allow_events')}
+                  className="w-5 h-5 accent-brand-mint rounded cursor-pointer"
+                />
+                <label htmlFor="allow_events" className="text-sm font-semibold tracking-wide text-foreground cursor-pointer">
+                  Allow Events on this Turf
+                </label>
+              </div>
+
+              {watch('allow_events') && (
+                <div className="space-y-2 animate-in fade-in zoom-in duration-200">
+                  <label className="text-sm font-semibold tracking-wide text-brand-mint uppercase">Fixed Price for Events (₹)</label>
+                  <div className="relative">
+                    <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      type="number" step="0.01"
+                      className={`pl-12 h-12 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl ${errors.event_price ? 'border-red-500/50' : ''}`}
+                      placeholder="e.g. 1500"
+                      {...register('event_price', { valueAsNumber: true })}
+                    />
+                  </div>
+                  {errors.event_price && <p className="text-xs text-red-400 ml-1 mt-1 font-medium">{errors.event_price.message}</p>}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Section: Features (Sports & Amenities) */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold border-b border-border/50 pb-2">Features</h3>
-            
+
             <div className="space-y-3">
               <label className="text-sm font-semibold tracking-wide text-brand-mint flex items-center gap-2"><Trophy className="w-4 h-4" /> Sports Allowed</label>
-              
+
               <div className="flex gap-2 items-center">
-                <Input 
+                <Input
                   value={sportInput}
                   onChange={(e) => setSportInput(e.target.value)}
                   onKeyDown={handleAddSport}
                   placeholder="Type a sport and press Enter (e.g., Cricket)"
                   className="h-11 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl"
                 />
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   onClick={() => handleAddSport()}
                   className="h-11 bg-brand-mint/10 text-brand-mint hover:bg-brand-mint/20 border border-brand-mint/20"
                 >
@@ -429,17 +467,17 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
 
             <div className="space-y-3 pt-4">
               <label className="text-sm font-semibold tracking-wide text-brand-mint flex items-center gap-2"><CheckSquare className="w-4 h-4" /> Amenities</label>
-              
+
               <div className="flex gap-2 items-center">
-                <Input 
+                <Input
                   value={amenityInput}
                   onChange={(e) => setAmenityInput(e.target.value)}
                   onKeyDown={handleAddAmenity}
                   placeholder="Type an amenity and press Enter (e.g., Parking)"
                   className="h-11 bg-background border-border/50 focus:border-brand-mint transition-all rounded-xl"
                 />
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   onClick={() => handleAddAmenity()}
                   className="h-11 bg-brand-caribbean/10 text-brand-caribbean hover:bg-brand-caribbean/20 border border-brand-caribbean/20"
                 >
@@ -469,33 +507,33 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border/50 pb-2">
               <h3 className="text-lg font-bold">Images</h3>
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm" 
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => append({ url: '', key: `turf-images/${Date.now()}-placeholder.jpg` })}
                 className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
               >
                 <Plus className="w-4 h-4 mr-1" /> Add Image Link
               </Button>
             </div>
-            
+
             <div className="space-y-3">
               {fields.map((field, index) => (
                 <div key={field.id}>
                   <div className="flex items-center gap-3">
                     <div className="relative flex-1 group">
                       {/* Hidden File Input */}
-                      <input 
-                        type="file" 
+                      <input
+                        type="file"
                         accept="image/*"
-                        className="hidden" 
+                        className="hidden"
                         id={`image-upload-${index}`}
                         onChange={(e) => handleImageUpload(e, index)}
                       />
-                      
+
                       {/* Custom Upload Button / Preview */}
-                      <label 
+                      <label
                         htmlFor={`image-upload-${index}`}
                         className={`flex items-center justify-between w-full h-14 px-4 bg-background border border-border/50 hover:border-brand-mint/50 transition-all rounded-xl cursor-pointer ${errors.images?.[index]?.url ? 'border-red-500/50' : ''}`}
                       >
@@ -503,15 +541,15 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                           {uploadingImageIndex === index ? (
                             <Loader2 className="w-5 h-5 text-brand-mint animate-spin" />
                           ) : watch(`images.${index}.url`) ? (
-                             
+
                             <img src={getImageUrl(watch(`images.${index}`)) || watch(`images.${index}.url`)} alt="Preview" className="w-8 h-8 rounded-md object-cover border border-border/50" />
                           ) : (
                             <ImageIcon className="w-5 h-5 text-muted-foreground" />
                           )}
                           <span className="text-sm font-medium truncate text-muted-foreground">
-                            {uploadingImageIndex === index 
-                              ? "Uploading to S3..." 
-                              : watch(`images.${index}.url`) 
+                            {uploadingImageIndex === index
+                              ? "Uploading to S3..."
+                              : watch(`images.${index}.url`)
                                 ? watch(`images.${index}.key`) || "Image selected"
                                 : "Click to select image file..."}
                           </span>
@@ -526,10 +564,10 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
                       <input type="hidden" {...register(`images.${index}.key` as const)} />
                     </div>
                     {fields.length > 1 && (
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => remove(index)}
                         className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-11 w-11 rounded-xl"
                       >
@@ -547,13 +585,13 @@ export function TurfForm({ initialData, onSubmit, isSubmitting = false }: TurfFo
               )}
             </div>
           </div>
-          
+
         </CardContent>
       </Card>
 
       <div className="flex justify-end">
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={isSubmitting}
           className="bg-brand-mint text-brand-dark-green hover:bg-brand-mint/90 font-bold shadow-md rounded-xl h-12 px-8 w-full sm:w-auto"
         >

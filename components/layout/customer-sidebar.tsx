@@ -2,13 +2,14 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, TentTree, CalendarCheck, Users, MessageSquareText, UserSquare2, LogOut } from 'lucide-react'
+import { LayoutDashboard, TentTree, CalendarCheck, Users, MessageSquareText, UserSquare2, LogOut, Flag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { customerAuthService } from '@/services/customer-auth'
 
 const navItems = [
   { name: 'Turf', href: '/customer/turf', icon: TentTree },
+  { name: 'Events', href: '/customer/events', icon: Flag },
   { name: 'My Booking', href: '/customer/bookings', icon: CalendarCheck },
   { name: 'Community', href: '/customer/community', icon: Users },
   { name: 'Profile', href: '/customer/profile', icon: UserSquare2 },
