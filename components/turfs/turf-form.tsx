@@ -23,7 +23,7 @@ const turfSchema = z.object({
   closing_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/, 'Invalid time format (HH:MM or HH:MM:SS)'),
   sports: z.array(z.string()).min(1, 'Select at least one sport'),
   amenities: z.array(z.string()).min(1, 'Select at least one amenity'),
-  allow_events: z.boolean().default(true),
+  allow_events: z.boolean(),
   event_price: z.number().min(1, 'Event price must be greater than 0').optional().or(z.literal('')),
   images: z.array(z.object({
     url: z.string().url('Must be a valid image URL'),
