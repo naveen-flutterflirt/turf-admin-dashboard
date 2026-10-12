@@ -84,7 +84,7 @@ export const customerTurfsService = {
       if (params?.limit !== undefined) urlParams.append('limit', String(params.limit));
 
       const queryString = urlParams.toString();
-      const url = `http://localhost:3000/customer/turfs${queryString ? `?${queryString}` : ''}`;
+      const url = `http://api.eatmeat.live/customer/turfs${queryString ? `?${queryString}` : ''}`;
 
       const response = await fetch(url, { method: 'GET', headers });
 
@@ -130,7 +130,7 @@ export const customerTurfsService = {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const url = `http://localhost:3000/customer/turfs/${turf_id}/slots?date=${date}&sport_id=${sport_id}`;
+      const url = `http://api.eatmeat.live/customer/turfs/${turf_id}/slots?date=${date}&sport_id=${sport_id}`;
       const response = await fetch(url, { method: 'GET', headers });
 
       let result: any;
