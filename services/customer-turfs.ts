@@ -59,7 +59,7 @@ export interface CustomerTurfsResponse {
   };
   message?: string;
 }
-
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.eatmeat.live';
 export const customerTurfsService = {
   getTurfs: async (params?: GetTurfsParams): Promise<CustomerTurfsResponse> => {
     try {
@@ -84,7 +84,7 @@ export const customerTurfsService = {
       if (params?.limit !== undefined) urlParams.append('limit', String(params.limit));
 
       const queryString = urlParams.toString();
-      const url = `http://api.eatmeat.live/customer/turfs${queryString ? `?${queryString}` : ''}`;
+      const url = `${API_BASE_URL}/customer/turfs${queryString ? `?${queryString}` : ''}`;
 
       const response = await fetch(url, { method: 'GET', headers });
 
@@ -112,6 +112,7 @@ export const customerTurfsService = {
         meta: result.meta,
       };
     } catch (error: any) {
+      console.error('customerTurfsService.getTurfs error:', error);
       return {
         success: false,
         message: 'Network error or server is unreachable. Please try again later.'
@@ -130,7 +131,7 @@ export const customerTurfsService = {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const url = `http://api.eatmeat.live/customer/turfs/${turf_id}/slots?date=${date}&sport_id=${sport_id}`;
+      const url = `${API_BASE_URL}/customer/turfs/${turf_id}/slots?date=${date}&sport_id=${sport_id}`;
       const response = await fetch(url, { method: 'GET', headers });
 
       let result: any;
